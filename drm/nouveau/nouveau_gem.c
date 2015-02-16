@@ -173,6 +173,61 @@ nouveau_gem_object_close(struct drm_gem_object *gem, struct drm_file *file_priv)
 }
 
 int
+nouveau_gem_ioctl_set_tiling(struct drm_device *dev, void *data,
+			     struct drm_file *file_priv)
+{
+	struct nouveau_drm *drm = nouveau_drm(dev);
+	struct nouveau_cli *cli = nouveau_cli(file_priv);
+	struct nvkm_fb *pfb = nvxx_fb(&drm->device);
+	struct drm_nouveau_gem_set_tiling *req = data;
+	struct drm_gem_object *gem;
+	struct nouveau_bo *nvbo;
+	struct nvkm_mem *mem;
+	struct nvkm_vma *vma;
+	int ret = 0;
+
+	if (!pfb->memtype_valid(pfb, req->tile_flags)) {
+		NV_PRINTK(error, cli, "bad memtype: 0x%08x\n", req->tile_flags);
+		return -EINVAL;
+	}
+
+	gem = drm_gem_object_lookup(dev, file_priv, req->handle);
+	if (!gem)
+		return -ENOENT;
+
+	nvbo = nouveau_gem_object(gem);
+
+	if (nvbo->tile_mode != req->tile_mode ||
+	    nvbo->tile_flags != req->tile_flags) {
+
+		ret = ttm_bo_reserve(&nvbo->bo, false, false, false, NULL);
+		if (ret)
+			goto out;
+
+		vma = nouveau_bo_vma_find(nvbo, cli->vm);
+		if (!vma) {
+			ret = -ENOENT;
+			goto unreserve;
+		}
+
+		mem = nvbo->bo.mem.mm_node;
+		nvbo->tile_mode = req->tile_mode;
+		nvbo->tile_flags = req->tile_flags;
+
+		/* Need to rewrite page tables */
+		mem->memtype = (nvbo->tile_flags >> 8) & 0xff;
+		nvkm_vm_map(vma, nvbo->bo.mem.mm_node);
+
+unreserve:
+		ttm_bo_unreserve(&nvbo->bo);
+	}
+
+out:
+	drm_gem_object_unreference_unlocked(gem);
+	return ret;
+}
+
+int
 nouveau_gem_new(struct drm_device *dev, int size, int align, uint32_t domain,
 		uint32_t tile_mode, uint32_t tile_flags,
 		struct nouveau_bo **pnvbo)
