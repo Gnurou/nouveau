@@ -1684,6 +1684,7 @@ gf100_gr_ctor(struct nvkm_object *parent, struct nvkm_object *engine,
 	case 0xd7:
 	case 0xd9: /* 1/0/0/0, 1 */
 	case 0xea: /* gk20a */
+	case 0x12b: /* gm20b */
 		priv->magic_not_rop_nr = 0x01;
 		break;
 	}
