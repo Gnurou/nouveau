@@ -75,6 +75,10 @@ MODULE_PARM_DESC(runpm, "disable (0), force enable (1), optimus only default (-1
 int nouveau_runtime_pm = -1;
 module_param_named(runpm, nouveau_runtime_pm, int, 0400);
 
+MODULE_PARM_DESC(staging, "enable staging APIs");
+int nouveau_staging = 0;
+module_param_named(staging, nouveau_staging, int, 0400);
+
 static struct drm_driver driver_stub;
 static struct drm_driver driver_pci;
 static struct drm_driver driver_platform;
@@ -895,6 +899,7 @@ nouveau_ioctls[] = {
 	DRM_IOCTL_DEF_DRV(NOUVEAU_GEM_CPU_PREP, nouveau_gem_ioctl_cpu_prep, DRM_UNLOCKED|DRM_AUTH|DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(NOUVEAU_GEM_CPU_FINI, nouveau_gem_ioctl_cpu_fini, DRM_UNLOCKED|DRM_AUTH|DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(NOUVEAU_GEM_INFO, nouveau_gem_ioctl_info, DRM_UNLOCKED|DRM_AUTH|DRM_RENDER_ALLOW),
+	/* Staging ioctls */
 };
 
 long
@@ -1027,6 +1032,7 @@ static void nouveau_display_options(void)
 	DRM_DEBUG_DRIVER("... runpm        : %d\n", nouveau_runtime_pm);
 	DRM_DEBUG_DRIVER("... vram_pushbuf : %d\n", nouveau_vram_pushbuf);
 	DRM_DEBUG_DRIVER("... pstate       : %d\n", nouveau_pstate);
+	DRM_DEBUG_DRIVER("... staging      : %d\n", nouveau_staging);
 }
 
 static const struct dev_pm_ops nouveau_pm_ops = {
@@ -1088,6 +1094,18 @@ err_free:
 static int __init
 nouveau_drm_init(void)
 {
+	/* Do not register staging ioctsl if option not specified */
+	if (!nouveau_staging) {
+		unsigned i;
+
+		/* This keeps us safe is no staging ioctls are defined */
+		i = min(driver_stub.num_ioctls, DRM_NOUVEAU_STAGING_IOCTL);
+		while (!nouveau_ioctls[i - 1].func)
+			i--;
+
+		driver_stub.num_ioctls = i;
+	}
+
 	driver_pci = driver_stub;
 	driver_pci.set_busid = drm_pci_set_busid;
 	driver_platform = driver_stub;
