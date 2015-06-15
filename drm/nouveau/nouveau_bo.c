@@ -173,6 +173,33 @@ nouveau_bo_fixup_align(struct nouveau_bo *nvbo, u32 flags,
 	*size = roundup(*size, PAGE_SIZE);
 }
 
+void
+nouveau_bo_update_tiling(struct nouveau_drm *drm, struct nouveau_bo *nvbo,
+			 struct nvkm_mem *mem)
+{
+	switch (drm->device.info.family) {
+	case NV_DEVICE_INFO_V0_TNT:
+	case NV_DEVICE_INFO_V0_CELSIUS:
+	case NV_DEVICE_INFO_V0_KELVIN:
+	case NV_DEVICE_INFO_V0_RANKINE:
+	case NV_DEVICE_INFO_V0_CURIE:
+		break;
+	case NV_DEVICE_INFO_V0_TESLA:
+		if (drm->device.info.chipset != 0x50)
+			mem->memtype = (nvbo->tile_flags & 0x7f00) >> 8;
+		break;
+	case NV_DEVICE_INFO_V0_FERMI:
+	case NV_DEVICE_INFO_V0_KEPLER:
+	case NV_DEVICE_INFO_V0_MAXWELL:
+		mem->memtype = (nvbo->tile_flags & 0xff00) >> 8;
+		break;
+	default:
+		NV_WARN(drm, "%s: unhandled family type %x\n", __func__,
+			drm->device.info.family);
+		break;
+	}
+}
+
 int
 nouveau_bo_new(struct drm_device *dev, int size, int align,
 	       uint32_t flags, uint32_t tile_mode, uint32_t tile_flags,
