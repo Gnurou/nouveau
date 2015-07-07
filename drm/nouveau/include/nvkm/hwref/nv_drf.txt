@@ -1,0 +1,123 @@
+
+For registers, consider a hierarchical naming scheme:
+
+    'd' -> device/engine
+    'r' -> register offset
+    'f' -> field hi:lo bits within the register
+    'v' -> value for use in the field
+
+Memory objects can be treated similarly:
+
+    'd' -> data/struct
+    'o' -> byte offset (within the object/struct, or use 'w' for 32b word, etc.)
+    'f' -> field hi:lo bits
+    'v' -> field value
+
+To construct names assume the following naming pattern:
+
+    NV_<d>              : a range of addresses/offsets
+    NV_<d>_<r>          : a specific register offset
+    NV_<d>_<r>_<f>      : a range of bits
+    NV_<d>_<r>_<f>_<v>  : a specific value for use within a field
+
+E.g.:
+
+    #define NV_PGRAPH                   0x0040FFFF:0x00400000
+    #define NV_PGRAPH_STATUS            0x400700
+    #define NV_PGRAPH_STATUS_STATE      0:0
+    #define NV_PGRAPH_STATUS_STATE_BUSY 1
+
+To refer to a specific register, say, create a macro to take the
+'d' and 'r' as parameters and construct the appropriate name using
+token concatenation:
+
+    #define NV_DRF_REG(d, r)             NV_ ## d ## _ ## r
+
+Invocation would be: NV_DRF_REG(PGRAPH, STATUS) for the NV_PGRAPH_STATUS
+register above.
+
+For fields (bit locations), append 'f'.
+
+    #define NV_DRF_FIELD(d, r, f)        NV_ ## d ## _ ## r ## _ ## f
+
+For specific field value enumerants add 'v':
+
+    #define NV_DRF_FIELD_VAL(d, r, f, v) NV_ ## d ## _ ## r ## _ ## f ## _ ## v
+
+To refer to the high part of a range (here, a bit field) use a
+conditional ternary as follows: ( <0|1> ? <hi> : <lo> )
+
+    #define NV_DRF_FIELD_HI(d, r, f) ( 1 ? NV_DRF_FIELD(d, r, f) )
+    #define NV_DRF_FIELD_LO(d, r, f) ( 0 ? NV_DRF_FIELD(d, r, f) )
+
+The example below shows how we arrive at the high and low bit numbers.
+
+    #define NV_PGRAPH_FOO_BAR 2:1
+
+NV_DRF_FIELD_HI(PGRAPH,FOO,BAR) expands to ( 1 ? 2:1 ) -> 2
+NV_DRF_FIELD_LO(PGRAPH,FOO,BAR) expands to ( 0 ? 2:1 ) -> 1
+
+From these we can create various macros for managing the bits within fields:
+placing field values, extracting them, masking them, etc.
+
+A specific field's value can be thought of in two ways:
+    . "in-place"
+    . or as a "value" (or number) shifted to the bit-0 position.
+
+The latter is suitable for math ops, etc.  The first is suitable for
+or-ing with other fields within the register.
+
+We say "get field" to name the operation which extracts and shifts the
+appropriate bits to bit zero.  We say "set field" to name the operation
+which takes a value, masks it and then shifts it to the field's position.
+
+Field enumerants are treated as a special case of "set" which appends a
+"V" position to the token pasting.  Illustrated (see below for drf_* macro
+definitions):
+
+    #define D 0x100:0x0   // the example "device"
+    #define D_R 0x20      // a "register"
+    #define D_R_F 5:1     // a "field"
+    #define D_R_F_FOO 0   // a field value
+    #define D_R_F_BAR 1   //      ""
+    #define D_R_F_BAZ 9   //      ""
+
+    expanding drf_setv(D, R, F, BAZ) we get:
+
+     drf_set(D,R,F, D_R_F_BAZ)                                           ->
+     drf_set(D,R,F, 9)                                                   ->
+    (9 & drf_mask(D, R, F))                          << drf_shift(D,R,F) ->
+    (9 & (~0 >> 31-drf_width(D, R, F)))              << drf_lo(D,R,F)    ->
+    (9 & (~0 >> 31-(1+drf_hi(D,R,F)-drf_lo(D,R,F)))) << drf_lo(D,R,F)    ->
+    (9 & (~0 >> 31-(1+(1?D_R_F) - (0?D_R_F))))       << (0?D_R_F)        ->
+    (9 & (~0 >> 31-(1+(1?5:1)   - (0?5:1))))         << (0?5:1)          ->
+    (9 & (~0 >> 31-(1+    (5)   - (1))))             << (1)              ->
+    (9 & (~0 >> 31-(1+5-1)))                         << (1)              ->
+    (9 & (0xffffffff >> (31-5)))                     <<  1               ->
+    (9 & (0xffffffff >> 26))                         <<  1               ->
+    (9 & 0x1f)                                       <<  1               ->
+     9                                               <<  1               ->
+     0x12
+
+Note that the above collapses neatly at compile time.  That's a feature.
+
+An important thing to note is that values "in-place" are suitable for bit-wise
+oring (|) to accumulate multiple fields for use in the same register.  To extend
+the previous example:
+    #define D_R_FTOO  6:6  // a second 1-bit wide "field"
+    #define D_R_FTOO_ENABLED  1
+    #define D_R_FTOO_DISABLED 0
+
+The following would be correct usage to form a new register value for
+the example register "D_R":
+     drf_setv(D,R, F, BAZ) | drf_setv(D,R, FTOO, ENABLED)
+
+The following illustrates the reverse, inspecting values on a per-field
+basis:
+     u32 d_r = read_reg(drf_r(D, R));
+
+     if ( drf_get(D, R, FTOO, d_r) == drf_v(D, R, FTOO, ENABLED) ) {
+         cout << "the FTOO value of register d_r is _ENABLED";
+     }
+
+
