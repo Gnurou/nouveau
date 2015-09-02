@@ -28,3 +28,4 @@ nvkm-y += nvkm/engine/fifo/gpfifog84.o
 nvkm-y += nvkm/engine/fifo/gpfifogf100.o
 nvkm-y += nvkm/engine/fifo/gpfifogk104.o
 nvkm-y += nvkm/engine/fifo/gpfifogm204.o
+nvkm-y += nvkm/engine/fifo/gpfifogm20b.o

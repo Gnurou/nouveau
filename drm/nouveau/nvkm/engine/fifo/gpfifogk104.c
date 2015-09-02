@@ -33,7 +33,7 @@
 #include <nvif/cla06f.h>
 #include <nvif/unpack.h>
 
-static int
+int
 gk104_fifo_gpfifo_kick(struct gk104_fifo_chan *chan)
 {
 	struct gk104_fifo *fifo = chan->fifo;
@@ -72,7 +72,7 @@ gk104_fifo_gpfifo_engine_addr(struct nvkm_engine *engine)
 	}
 }
 
-static int
+int
 gk104_fifo_gpfifo_engine_fini(struct nvkm_fifo_chan *base,
 			      struct nvkm_engine *engine, bool suspend)
 {
@@ -95,7 +95,7 @@ gk104_fifo_gpfifo_engine_fini(struct nvkm_fifo_chan *base,
 	return ret;
 }
 
-static int
+int
 gk104_fifo_gpfifo_engine_init(struct nvkm_fifo_chan *base,
 			      struct nvkm_engine *engine)
 {
@@ -114,7 +114,7 @@ gk104_fifo_gpfifo_engine_init(struct nvkm_fifo_chan *base,
 	return 0;
 }
 
-static void
+void
 gk104_fifo_gpfifo_engine_dtor(struct nvkm_fifo_chan *base,
 			      struct nvkm_engine *engine)
 {
@@ -123,7 +123,7 @@ gk104_fifo_gpfifo_engine_dtor(struct nvkm_fifo_chan *base,
 	nvkm_gpuobj_del(&chan->engn[engine->subdev.index].inst);
 }
 
-static int
+int
 gk104_fifo_gpfifo_engine_ctor(struct nvkm_fifo_chan *base,
 			      struct nvkm_engine *engine,
 			      struct nvkm_object *object)
@@ -160,7 +160,7 @@ gk104_fifo_gpfifo_fini(struct nvkm_fifo_chan *base)
 	nvkm_wr32(device, 0x800000 + coff, 0x00000000);
 }
 
-static void
+void
 gk104_fifo_gpfifo_init(struct nvkm_fifo_chan *base)
 {
 	struct gk104_fifo_chan *chan = gk104_fifo_chan(base);
@@ -180,7 +180,7 @@ gk104_fifo_gpfifo_init(struct nvkm_fifo_chan *base)
 	}
 }
 
-static void *
+void *
 gk104_fifo_gpfifo_dtor(struct nvkm_fifo_chan *base)
 {
 	struct gk104_fifo_chan *chan = gk104_fifo_chan(base);
@@ -189,21 +189,10 @@ gk104_fifo_gpfifo_dtor(struct nvkm_fifo_chan *base)
 	return chan;
 }
 
-static const struct nvkm_fifo_chan_func
-gk104_fifo_gpfifo_func = {
-	.dtor = gk104_fifo_gpfifo_dtor,
-	.init = gk104_fifo_gpfifo_init,
-	.fini = gk104_fifo_gpfifo_fini,
-	.ntfy = g84_fifo_chan_ntfy,
-	.engine_ctor = gk104_fifo_gpfifo_engine_ctor,
-	.engine_dtor = gk104_fifo_gpfifo_engine_dtor,
-	.engine_init = gk104_fifo_gpfifo_engine_init,
-	.engine_fini = gk104_fifo_gpfifo_engine_fini,
-};
-
 int
-gk104_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
-		      void *data, u32 size, struct nvkm_object **pobject)
+__gk104_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
+		        const struct nvkm_fifo_chan_func *func, void *data,
+			u32 size, struct nvkm_object **pobject)
 {
 	union {
 		struct kepler_channel_gpfifo_a_v0 v0;
@@ -257,8 +246,8 @@ gk104_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	chan->engine = __ffs(args->v0.engine);
 	INIT_LIST_HEAD(&chan->head);
 
-	ret = nvkm_fifo_chan_ctor(&gk104_fifo_gpfifo_func, &fifo->base,
-				  0x1000, 0x1000, true, args->v0.vm, 0,
+	ret = nvkm_fifo_chan_ctor(func, &fifo->base, 0x1000, 0x1000, true,
+				  args->v0.vm, 0,
 				  gk104_fifo_engine_subdev(chan->engine),
 				  1, fifo->user.bar.offset, 0x200,
 				  oclass, &chan->base);
@@ -313,6 +302,26 @@ gk104_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	nvkm_wo32(chan->base.inst, 0xfc, 0x10000010); /* 0x002350 */
 	nvkm_done(chan->base.inst);
 	return 0;
+}
+
+static const struct nvkm_fifo_chan_func
+gk104_fifo_gpfifo_func = {
+	.dtor = gk104_fifo_gpfifo_dtor,
+	.init = gk104_fifo_gpfifo_init,
+	.fini = gk104_fifo_gpfifo_fini,
+	.ntfy = g84_fifo_chan_ntfy,
+	.engine_ctor = gk104_fifo_gpfifo_engine_ctor,
+	.engine_dtor = gk104_fifo_gpfifo_engine_dtor,
+	.engine_init = gk104_fifo_gpfifo_engine_init,
+	.engine_fini = gk104_fifo_gpfifo_engine_fini,
+};
+
+int
+gk104_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
+		      void *data, u32 size, struct nvkm_object **pobject)
+{
+	return __gk104_fifo_gpfifo_new(base, oclass, &gk104_fifo_gpfifo_func,
+				       data, size, pobject);
 }
 
 const struct nvkm_fifo_chan_oclass
