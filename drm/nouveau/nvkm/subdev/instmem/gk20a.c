@@ -92,6 +92,7 @@ struct gk20a_instmem {
 
 	/* protects vaddr_* and gk20a_instobj::vaddr* */
 	spinlock_t lock;
+	unsigned long flags;
 
 	/* CPU mappings LRU */
 	unsigned int vaddr_use;
@@ -188,12 +189,11 @@ gk20a_instobj_acquire(struct nvkm_memory *memory)
 	struct gk20a_instobj *node = gk20a_instobj(memory);
 	struct gk20a_instmem *imem = node->imem;
 	struct nvkm_ltc *ltc = imem->base.subdev.device->ltc;
-	const u64 size = nvkm_memory_size(memory);
-	unsigned long flags;
+	u64 size;
 
 	nvkm_ltc_flush(ltc);
 
-	spin_lock_irqsave(&imem->lock, flags);
+	spin_lock_irqsave(&imem->lock, imem->flags);
 
 	if (node->vaddr) {
 		/* remove us from the LRU list since we cannot be unmapped */
@@ -201,6 +201,8 @@ gk20a_instobj_acquire(struct nvkm_memory *memory)
 
 		goto out;
 	}
+
+	size = nvkm_memory_size(memory);
 
 	/* try to free some address space if we reached the limit */
 	gk20a_instmem_vaddr_gc(imem, size);
@@ -218,8 +220,6 @@ gk20a_instobj_acquire(struct nvkm_memory *memory)
 		   imem->vaddr_use, imem->vaddr_max);
 
 out:
-	spin_unlock_irqrestore(&imem->lock, flags);
-
 	return node->vaddr;
 }
 
@@ -229,14 +229,11 @@ gk20a_instobj_release(struct nvkm_memory *memory)
 	struct gk20a_instobj *node = gk20a_instobj(memory);
 	struct gk20a_instmem *imem = node->imem;
 	struct nvkm_ltc *ltc = imem->base.subdev.device->ltc;
-	unsigned long flags;
-
-	spin_lock_irqsave(&imem->lock, flags);
 
 	/* add ourselves to the LRU list so our CPU mapping can be freed */
 	list_add_tail(&node->vaddr_node, &imem->vaddr_lru);
 
-	spin_unlock_irqrestore(&imem->lock, flags);
+	spin_unlock_irqrestore(&imem->lock, imem->flags);
 
 	wmb();
 	nvkm_ltc_invalidate(ltc);
