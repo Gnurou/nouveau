@@ -116,7 +116,7 @@ nouveau_display_scanoutpos_head(struct drm_crtc *crtc, int *vpos, int *hpos,
 			break;
 		}
 
-		if (retry) ndelay(crtc->linedur_ns);
+		//if (retry) ndelay(crtc->linedur_ns);
 	} while (retry--);
 
 	*hpos = args.scan.hline;

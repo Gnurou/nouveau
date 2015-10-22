@@ -1,3 +1,4 @@
+#define __OS_HAS_AGP 0
 /*
  * Copyright 2007 Dave Airlied
  * All Rights Reserved.
