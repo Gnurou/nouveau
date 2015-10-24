@@ -78,6 +78,9 @@ struct nvkm_device {
 	u64 disable_mask;
 	u32 debug;
 
+	/* secure boot state, to repeat the process when needed */
+	void *secure_boot_state;
+
 	const struct nvkm_device_chip *chip;
 	enum {
 		NV_04    = 0x04,
@@ -205,6 +208,13 @@ struct nvkm_device_chip {
 	int (*sw     )(struct nvkm_device *, int idx, struct nvkm_sw **);
 	int (*vic    )(struct nvkm_device *, int idx, struct nvkm_engine **);
 	int (*vp     )(struct nvkm_device *, int idx, struct nvkm_engine **);
+
+	struct {
+		/* Bit-mask of IDs of managed falcons. 0 means no secure boot */
+		unsigned long managed_falcons;
+		/* ID of the falcon that will perform secure boot */
+		unsigned long boot_falcon;
+	} secure_boot;
 };
 
 struct nvkm_device *nvkm_device_find(u64 name);
