@@ -2043,6 +2043,10 @@ nv12b_chipset = {
 	.fifo = gm20b_fifo_new,
 	.gr = gm20b_gr_new,
 	.sw = gf100_sw_new,
+	.secure_boot = {
+		.managed_falcons = BIT(LSF_FALCON_ID_FECS),
+		.boot_falcon = LSF_FALCON_ID_PMU,
+	},
 };
 
 static int

@@ -32,12 +32,10 @@ gm20b_gr_init_gpc_mmu(struct gf100_gr *gr)
 	struct nvkm_device *device = gr->base.engine.subdev.device;
 	u32 val;
 
-	/* TODO this needs to be removed once secure boot works */
-	if (1) {
+	/* Bypass MMU check for non-secure boot */
+	if (!device->chip->secure_boot.managed_falcons)
 		nvkm_wr32(device, 0x100ce4, 0xffffffff);
-	}
 
-	/* TODO update once secure boot works */
 	val = nvkm_rd32(device, 0x100c80);
 	val &= 0xf000087f;
 	nvkm_wr32(device, 0x418880, val);
