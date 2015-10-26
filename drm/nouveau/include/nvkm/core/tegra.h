@@ -11,6 +11,7 @@ struct nvkm_device_tegra {
 
 	struct reset_control *rst;
 	struct clk *clk;
+	struct clk *clk_ref;
 	struct clk *clk_pwr;
 
 	struct regulator *vdd;
