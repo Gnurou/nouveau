@@ -27,7 +27,8 @@ struct nvkm_device_tegra {
 		unsigned long pgshift;
 	} iommu;
 
-	int gpu_speedo;
+	int gpu_speedo_id;
+	int gpu_speedo_value;
 };
 
 struct nvkm_device_tegra_func {
