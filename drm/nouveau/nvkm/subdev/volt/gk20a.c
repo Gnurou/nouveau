@@ -179,7 +179,7 @@ gk20a_volt_new(struct nvkm_device *device, int index, struct nvkm_volt **pvolt)
 		volt->base.vid[i].vid = i;
 		volt->base.vid[i].uv =
 			gk20a_volt_calc_voltage(&gk20a_cvb_coef[i],
-						tdev->gpu_speedo);
+						tdev->gpu_speedo_value);
 		nvkm_debug(&volt->base.subdev, "%2d: vid=%d, uv=%d\n", i,
 			   volt->base.vid[i].vid, volt->base.vid[i].uv);
 	}

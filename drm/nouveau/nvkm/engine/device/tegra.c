@@ -295,7 +295,8 @@ nvkm_device_tegra_new(const struct nvkm_device_tegra_func *func,
 	if (ret)
 		return ret;
 
-	tdev->gpu_speedo = tegra_sku_info.gpu_speedo_value;
+	tdev->gpu_speedo_id = tegra_sku_info.gpu_speedo_id;
+	tdev->gpu_speedo_value = tegra_sku_info.gpu_speedo_value;
 	ret = nvkm_device_ctor(&nvkm_device_tegra_func, NULL, &pdev->dev,
 			       NVKM_DEVICE_TEGRA, pdev->id, NULL,
 			       cfg, dbg, detect, mmio, subdev_mask,
