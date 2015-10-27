@@ -2030,6 +2030,7 @@ nv12b_chipset = {
 	.name = "GM20B",
 	.bar = gk20a_bar_new,
 	.bus = gf100_bus_new,
+	.clk = gm20b_clk_new,
 	.fb = gk20a_fb_new,
 	.fuse = gm107_fuse_new,
 	.ibus = gk20a_ibus_new,
