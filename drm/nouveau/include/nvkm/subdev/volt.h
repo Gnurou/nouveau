@@ -21,4 +21,5 @@ int nvkm_volt_get_voltage_by_id(struct nvkm_volt *volt, u8 id);
 int nv40_volt_new(struct nvkm_device *, int, struct nvkm_volt **);
 int gk104_volt_new(struct nvkm_device *, int, struct nvkm_volt **);
 int gk20a_volt_new(struct nvkm_device *, int, struct nvkm_volt **);
+int gm20b_volt_new(struct nvkm_device *, int, struct nvkm_volt **);
 #endif
