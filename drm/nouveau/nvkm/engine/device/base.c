@@ -2037,6 +2037,7 @@ nv12b_chipset = {
 	.mc = gk20a_mc_new,
 	.mmu = gf100_mmu_new,
 	.timer = gk20a_timer_new,
+	.volt = gm20b_volt_new,
 	.ce[2] = gm204_ce_new,
 	.dma = gf119_dma_new,
 	.fifo = gm20b_fifo_new,
