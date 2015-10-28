@@ -862,8 +862,7 @@ _gm20b_pllg_program_na_mnp(struct gm20b_clk *clk,
 	struct nvkm_volt *volt = device->volt;
 	int cur_uv = nvkm_volt_get(volt);
 	int new_uv = nvkm_volt_get_voltage_by_id(volt, clk->vid);
-	struct gm20b_gpcpll *last_gpcpll = &clk->last_gpcpll;
-	u32 cur_rate = last_gpcpll->rate;
+	u32 cur_rate = clk->last_gpcpll.rate;
 
 	gm20b_clk_config_dvfs(clk);
 
@@ -871,7 +870,7 @@ _gm20b_pllg_program_na_mnp(struct gm20b_clk *clk,
 	 * We don't have to re-program the DVFS because the voltage keeps the
 	 * same value (and we already have the same coeffients in hardware).
 	 */
-	if (!allow_slide || last_gpcpll->dvfs.uv == gpcpll->dvfs.uv)
+	if (!allow_slide || clk->last_gpcpll.dvfs.uv == gpcpll->dvfs.uv)
 		return _gm20b_pllg_program_mnp(clk, &clk->gpcpll, allow_slide);
 
 	/* Before setting coefficient to 0, switch to safe frequency first */
