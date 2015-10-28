@@ -26,37 +26,56 @@
 
 #include <nvif/class.h>
 
+#include <hwref/nv_drf.h>
+#include <hwref/gm20b/nv_fb_hwref.h>
+#include <hwref/gm20b/nv_graphics_nobundle_hwref.h>
+
 static void
 gm20b_gr_init_gpc_mmu(struct gf100_gr *gr)
 {
 	struct nvkm_device *device = gr->base.engine.subdev.device;
 	u32 val;
 
-	/* TODO this needs to be removed once secure boot works */
-	if (1) {
-		nvkm_wr32(device, 0x100ce4, 0xffffffff);
-	}
+	/* Bypass MMU check for non-secure boot */
+	if (!device->chip->secure_boot.managed_falcons)
+		nvkm_wr32(device, drf_reg_offset(PFB, PRI_MMU_PHYS_SECURE),
+			  0xffffffff);
 
-	/* TODO update once secure boot works */
-	val = nvkm_rd32(device, 0x100c80);
-	val &= 0xf000087f;
-	nvkm_wr32(device, 0x418880, val);
-	nvkm_wr32(device, 0x418890, 0);
-	nvkm_wr32(device, 0x418894, 0);
+	val = nvkm_rd32(device, drf_reg_offset(PFB, PRI_MMU_CTRL));
+	val &=
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, VM_PG_SIZE) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, VOL_FAULT) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, COMP_FAULT) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, MISS_GRAN) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, CACHE_MODE) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, USE_PDB_BIG_PAGE_SIZE) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, MMU_APERTURE) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, MMU_VOL) |
+		drf_fld_mask_placed(PGRAPH, PRI_GPCS_MMU_CTRL, MMU_DISABLE);
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_CTRL), val);
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_PM_UNIT_MASK), 0);
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_PM_REQ_MASK), 0);
 
-	nvkm_wr32(device, 0x4188b0, nvkm_rd32(device, 0x100cc4));
-	nvkm_wr32(device, 0x4188b4, nvkm_rd32(device, 0x100cc8));
-	nvkm_wr32(device, 0x4188b8, nvkm_rd32(device, 0x100ccc));
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_DEBUG_CTRL),
+		  nvkm_rd32(device, drf_reg_offset(PFB, PRI_MMU_DEBUG_CTRL)));
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_DEBUG_WR),
+		  nvkm_rd32(device, drf_reg_offset(PFB, PRI_MMU_DEBUG_WR)));
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_DEBUG_RD),
+		  nvkm_rd32(device, drf_reg_offset(PFB, PRI_MMU_DEBUG_RD)));
 
-	nvkm_wr32(device, 0x4188ac, nvkm_rd32(device, 0x100800));
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_MMU_NUM_ACTIVE_LTCS),
+		  nvkm_rd32(device, drf_reg_offset(PFB, FBHUB_NUM_ACTIVE_LTCS)));
 }
 
 static void
 gm20b_gr_set_hww_esr_report_mask(struct gf100_gr *gr)
 {
 	struct nvkm_device *device = gr->base.engine.subdev.device;
-	nvkm_wr32(device, 0x419e44, 0xdffffe);
-	nvkm_wr32(device, 0x419e4c, 0x5);
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_TPCS_SM_HWW_WARP_ESR_REPORT_MASK),
+		  0xdffffe);
+	nvkm_wr32(device, drf_reg_offset(PGRAPH, PRI_GPCS_TPCS_SM_HWW_GLOBAL_ESR_REPORT_MASK),
+		drf_fld_val_placed(PGRAPH, PRI_GPCS_TPCS_SM_HWW_GLOBAL_ESR_REPORT_MASK, SM_TO_SM_FAULT, REPORT) |
+		drf_fld_val_placed(PGRAPH, PRI_GPCS_TPCS_SM_HWW_GLOBAL_ESR_REPORT_MASK, MULTIPLE_WARP_ERRORS, REPORT));
 }
 
 static const struct gf100_gr_func
