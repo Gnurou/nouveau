@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_g200_bus_hwref_h__
-#define __nv_g200_bus_hwref_h__
+#ifndef __hwref_g200_bus_h__
+#define __hwref_g200_bus_h__
 
 #define NV_PBUS_INTR_0                                      0x1100
 #define NV_PBUS_INTR_0_PRI_TIMEOUT                             3:3
@@ -31,4 +31,4 @@
 #define NV_PBUS_BAR1_BLOCK_TARGET                            29:28
 #define NV_PBUS_BAR1_BLOCK_TARGET_VID_MEM                        0
 
-#endif /* __nv_g200_bus_hwref_h__ */
+#endif /* __hwref_g200_bus_h__ */

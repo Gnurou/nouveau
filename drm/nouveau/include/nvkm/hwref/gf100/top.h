@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf100_top_hwref_h__
-#define __nv_gf100_top_hwref_h__
+#ifndef __hwref_gf100_top_h__
+#define __hwref_gf100_top_h__
 
 #define NV_PTOP_SCAL_NUM_GPCS                              0x22430
 #define NV_PTOP_SCAL_NUM_GPCS_VALUE                            4:0
@@ -34,4 +34,4 @@
 #define NV_PTOP_FS_STATUS_FBP_CLUSTER_ENABLE                     0
 #define NV_PTOP_FS_STATUS_FBP_CLUSTER_DISABLE                    1
 
-#endif /* __nv_gf100_top_hwref_h__ */
+#endif /* __hwref_gf100_top_h__ */

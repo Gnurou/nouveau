@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm20b_fuse_hwref_h__
-#define __nv_gm20b_fuse_hwref_h__
+#ifndef __hwref_gm20b_fuse_h__
+#define __hwref_gm20b_fuse_h__
 
 #define NV_FUSE_CTRL_OPT_TPC_GPC(i)                (0x21838+(i)*4)
 #define NV_FUSE_CTRL_OPT_RAM_SVOP_PDP                      0x21944
@@ -34,4 +34,4 @@
 #define NV_FUSE_STATUS_OPT_FBIO                            0x21c14
 #define NV_FUSE_STATUS_OPT_FBIO_DATA                          15:0
 
-#endif /* __nv_gm20b_fuse_hwref_h__ */
+#endif /* __hwref_gm20b_fuse_h__ */

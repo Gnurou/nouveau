@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf104_ctxsw_prog_hwref_h__
-#define __nv_gf104_ctxsw_prog_hwref_h__
+#ifndef __hwref_gf104_ctxsw_prog_h__
+#define __hwref_gf104_ctxsw_prog_h__
 
 #define NV_CTXSW_FECS_HEADER                                 0x100
 #define NV_CTXSW_MAIN_IMAGE_NUM_GPCS                             8
@@ -49,4 +49,4 @@
 #define NV_CTXSW_LOCAL_MAGIC_VALUE_V                          31:0
 #define NV_CTXSW_LOCAL_MAGIC_VALUE_V_VALUE              0xad0becab
 
-#endif /* __nv_gf104_ctxsw_prog_hwref_h__ */
+#endif /* __hwref_gf104_ctxsw_prog_h__ */

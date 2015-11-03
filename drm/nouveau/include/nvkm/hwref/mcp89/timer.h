@@ -19,10 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_mcp89_timer_hwref_h__
-#define __nv_mcp89_timer_hwref_h__
+#ifndef __hwref_mcp89_timer_h__
+#define __hwref_mcp89_timer_h__
 
 #define NV_PTIMER_PRI_TIMEOUT_SAVE_0                        0x9084
 #define NV_PTIMER_PRI_TIMEOUT_SAVE_1                        0x9088
 
-#endif /* __nv_mcp89_timer_hwref_h__ */
+#endif /* __hwref_mcp89_timer_h__ */

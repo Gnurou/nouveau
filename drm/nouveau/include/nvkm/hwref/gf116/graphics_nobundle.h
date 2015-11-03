@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf116_graphics_nobundle_hwref_h__
-#define __nv_gf116_graphics_nobundle_hwref_h__
+#ifndef __hwref_gf116_graphics_nobundle_h__
+#define __hwref_gf116_graphics_nobundle_h__
 
 #define NV_PGRAPH_INTR                                    0x400100
 #define NV_PGRAPH_INTR_NOTIFY                                  0:0
@@ -722,4 +722,4 @@
 #define NV_PGRAPH_ZCULL_BYTES_PER_ALIQUOT_PER_GPC               32
 #define NV_PGRAPH_ZCULL_SAVE_RESTORE_HEADER_BYTES_PER_GPC       32
 
-#endif /* __nv_gf116_graphics_nobundle_hwref_h__ */
+#endif /* __hwref_gf116_graphics_nobundle_h__ */

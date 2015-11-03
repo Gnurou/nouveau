@@ -19,12 +19,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_mcp79_flush_hwref_h__
-#define __nv_mcp79_flush_hwref_h__
+#ifndef __hwref_mcp79_flush_h__
+#define __hwref_mcp79_flush_h__
 
 #define NV_UFLUSH_FB_FLUSH                                 0x70000
 #define NV_UFLUSH_FB_FLUSH_PENDING                             0:0
 #define NV_UFLUSH_FB_FLUSH_PENDING_BUSY                          1
 #define NV_UFLUSH_FB_FLUSH_OUTSTANDING                         1:1
 
-#endif /* __nv_mcp79_flush_hwref_h__ */
+#endif /* __hwref_mcp79_flush_h__ */

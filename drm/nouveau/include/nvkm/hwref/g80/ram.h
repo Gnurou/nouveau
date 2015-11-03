@@ -19,9 +19,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_g80_ram_hwref_h__
-#define __nv_g80_ram_hwref_h__
+#ifndef __hwref_g80_ram_h__
+#define __hwref_g80_ram_h__
 
 #define NV_RAMFC_SUBDEVICE                    (31*32+31):(31*32+0)
 
-#endif /* __nv_g80_ram_hwref_h__ */
+#endif /* __hwref_g80_ram_h__ */

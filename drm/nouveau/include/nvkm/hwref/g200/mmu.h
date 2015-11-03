@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_g200_mmu_hwref_h__
-#define __nv_g200_mmu_hwref_h__
+#ifndef __hwref_g200_mmu_h__
+#define __hwref_g200_mmu_h__
 
 #define NV_MMU_PDE_ADDRESS_SHIFT                                12
 #define NV_MMU_PDE__SIZE                                         8
@@ -52,4 +52,4 @@
 #define NV_MMU_PTE_KIND_Z16                                   0x68
 #define NV_MMU_PTE_KIND_X8C24                                 0x44
 
-#endif /* __nv_g200_mmu_hwref_h__ */
+#endif /* __hwref_g200_mmu_h__ */

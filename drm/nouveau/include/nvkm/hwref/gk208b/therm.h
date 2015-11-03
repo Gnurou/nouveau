@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk208b_therm_hwref_h__
-#define __nv_gk208b_therm_hwref_h__
+#ifndef __hwref_gk208b_therm_h__
+#define __hwref_gk208b_therm_h__
 
 #define NV_THERM_USE_A                                     0x20798
 #define NV_THERM_WEIGHT_1                                  0x20024
@@ -46,4 +46,4 @@
 #define NV_THERM_HUBMMU_IDLE_FILTER                        0x2028c
 #define NV_THERM_HUBMMU_IDLE_FILTER_VALUE                     31:0
 
-#endif /* __nv_gk208b_therm_hwref_h__ */
+#endif /* __hwref_gk208b_therm_h__ */

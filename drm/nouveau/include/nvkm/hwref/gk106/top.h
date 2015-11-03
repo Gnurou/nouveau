@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk106_top_hwref_h__
-#define __nv_gk106_top_hwref_h__
+#ifndef __hwref_gk106_top_h__
+#define __hwref_gk106_top_h__
 
 #define NV_PTOP_SCAL_NUM_GPCS                              0x22430
 #define NV_PTOP_SCAL_NUM_GPCS_VALUE                            4:0
@@ -48,4 +48,4 @@
 #define NV_PTOP_DEVICE_INFO_ENTRY_NOT_VALID                      0
 #define NV_PTOP_DEVICE_INFO_ENTRY_ENUM                           2
 
-#endif /* __nv_gk106_top_hwref_h__ */
+#endif /* __hwref_gk106_top_h__ */

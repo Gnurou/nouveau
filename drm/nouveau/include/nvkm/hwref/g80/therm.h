@@ -19,9 +19,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_g80_therm_hwref_h__
-#define __nv_g80_therm_hwref_h__
+#ifndef __hwref_g80_therm_h__
+#define __hwref_g80_therm_h__
 
 #define NV_THERM_WEIGHT_1                                  0x20024
 
-#endif /* __nv_g80_therm_hwref_h__ */
+#endif /* __hwref_g80_therm_h__ */

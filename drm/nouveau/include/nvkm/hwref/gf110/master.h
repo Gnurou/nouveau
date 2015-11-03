@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf110_master_hwref_h__
-#define __nv_gf110_master_hwref_h__
+#ifndef __hwref_gf110_master_h__
+#define __hwref_gf110_master_h__
 
 #define NV_PMC_BOOT_0                                            0
 #define NV_PMC_BOOT_0_MINOR_REVISION                           3:0
@@ -63,4 +63,4 @@
 #define NV_PMC_ENABLE_PB_0                                     0:0
 #define NV_PMC_ENABLE_PB_SEL(i)                            (i):(i)
 
-#endif /* __nv_gf110_master_hwref_h__ */
+#endif /* __hwref_gf110_master_h__ */

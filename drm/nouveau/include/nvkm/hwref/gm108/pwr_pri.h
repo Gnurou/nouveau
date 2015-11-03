@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm108_pwr_pri_hwref_h__
-#define __nv_gm108_pwr_pri_hwref_h__
+#ifndef __hwref_gm108_pwr_pri_h__
+#define __hwref_gm108_pwr_pri_h__
 
 #define NV_PPWR_FALCON_SCTL                               0x10a240
 #define NV_PPWR_FALCON_IRQSSET                            0x10a000
@@ -191,4 +191,4 @@
 #define NV_PPWR_PMU_SCP_CTL_STAT                          0x10ac08
 #define NV_PPWR_PMU_SCP_CTL_STAT_DEBUG_MODE                  20:20
 
-#endif /* __nv_gm108_pwr_pri_hwref_h__ */
+#endif /* __hwref_gm108_pwr_pri_h__ */

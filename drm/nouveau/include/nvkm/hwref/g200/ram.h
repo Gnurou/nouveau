@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_g200_ram_hwref_h__
-#define __nv_g200_ram_hwref_h__
+#ifndef __hwref_g200_ram_h__
+#define __hwref_g200_ram_h__
 
 #define NV_RAMFC_SUBDEVICE                    (31*32+31):(31*32+0)
 #define NV_RAMFC_SEMAPHOREA               (0x23*32+31):(0x23*32+0)
@@ -28,4 +28,4 @@
 #define NV_RAMFC_SEMAPHOREC               (0x25*32+31):(0x25*32+0)
 #define NV_RAMFC_SIZE_VAL                                    0x100
 
-#endif /* __nv_g200_ram_hwref_h__ */
+#endif /* __hwref_g200_ram_h__ */

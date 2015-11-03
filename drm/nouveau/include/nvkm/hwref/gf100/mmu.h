@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf100_mmu_hwref_h__
-#define __nv_gf100_mmu_hwref_h__
+#ifndef __hwref_gf100_mmu_h__
+#define __hwref_gf100_mmu_h__
 
 #define NV_MMU_PDE_APERTURE_BIG                  (0*32+1):(0*32+0)
 #define NV_MMU_PDE_APERTURE_BIG_INVALID                          0
@@ -276,4 +276,4 @@
 #define NV_MMU_PTE_KIND_X8C24                                 0xfc
 #define NV_MMU_PTE_KIND_PITCH_NO_SWIZZLE                      0xfd
 
-#endif /* __nv_gf100_mmu_hwref_h__ */
+#endif /* __hwref_gf100_mmu_h__ */

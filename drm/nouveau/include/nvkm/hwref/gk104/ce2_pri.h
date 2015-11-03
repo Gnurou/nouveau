@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk104_ce2_pri_hwref_h__
-#define __nv_gk104_ce2_pri_hwref_h__
+#ifndef __hwref_gk104_ce2_pri_h__
+#define __hwref_gk104_ce2_pri_h__
 
 #define NV_PCE2_COP2_INTR_STATUS                          0x106908
 #define NV_PCE2_COP2_INTR_STATUS_BLOCKPIPE                     0:0
@@ -30,4 +30,4 @@
 #define NV_PCE2_COP2_INTR_STATUS_LAUNCHERR                     2:2
 #define NV_PCE2_COP2_INTR_STATUS_LAUNCHERR_RESET                 1
 
-#endif /* __nv_gk104_ce2_pri_hwref_h__ */
+#endif /* __hwref_gk104_ce2_pri_h__ */

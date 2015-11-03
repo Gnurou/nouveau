@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_g80_graphics_nobundle_hwref_h__
-#define __nv_g80_graphics_nobundle_hwref_h__
+#ifndef __hwref_g80_graphics_nobundle_h__
+#define __hwref_g80_graphics_nobundle_h__
 
 #define NV_PGRAPH_INTR                                    0x400100
 #define NV_PGRAPH_INTR_NOTIFY                                  0:0
@@ -81,4 +81,4 @@
 #define NV_PGRAPH_PRI_SCC_INIT                            0x405020
 #define NV_PGRAPH_PRI_SCC_INIT_RAM                             0:0
 
-#endif /* __nv_g80_graphics_nobundle_hwref_h__ */
+#endif /* __hwref_g80_graphics_nobundle_h__ */

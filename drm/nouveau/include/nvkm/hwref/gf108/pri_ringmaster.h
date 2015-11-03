@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf108_pri_ringmaster_hwref_h__
-#define __nv_gf108_pri_ringmaster_hwref_h__
+#ifndef __hwref_gf108_pri_ringmaster_h__
+#define __hwref_gf108_pri_ringmaster_h__
 
 #define NV_PPRIV_MASTER_RING_GLOBAL_CTL                   0x121c60
 #define NV_PPRIV_MASTER_RING_GLOBAL_CTL_RING_RESET             0:0
@@ -45,4 +45,4 @@
 #define NV_PPRIV_MASTER_RING_ENUMERATE_RESULTS_GPC        0x121c78
 #define NV_PPRIV_MASTER_RING_ENUMERATE_RESULTS_GPC_COUNT       4:0
 
-#endif /* __nv_gf108_pri_ringmaster_hwref_h__ */
+#endif /* __hwref_gf108_pri_ringmaster_h__ */

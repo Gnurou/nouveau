@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk208_proj_hwref_h__
-#define __nv_gk208_proj_hwref_h__
+#ifndef __hwref_gk208_proj_h__
+#define __hwref_gk208_proj_h__
 
 #define NV_GPC_PRI_BASE                                   0x500000
 #define NV_GPC_PRI_SHARED_BASE                            0x418000
@@ -45,4 +45,4 @@
 #define NV_TPC_IN_GPC_SHARED_BASE                           0x1800
 #define NV_TPC_IN_GPC_STRIDE                                 0x800
 
-#endif /* __nv_gk208_proj_hwref_h__ */
+#endif /* __hwref_gk208_proj_h__ */

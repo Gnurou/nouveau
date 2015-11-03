@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk208b_fb_hwref_h__
-#define __nv_gk208b_fb_hwref_h__
+#ifndef __hwref_gk208b_fb_h__
+#define __hwref_gk208b_fb_h__
 
 #define NV_PFB_PRI_MMU_CTRL                               0x100c80
 #define NV_PFB_PRI_MMU_CTRL_VM_PG_SIZE                         0:0
@@ -44,4 +44,4 @@
 #define NV_PFB_PRI_MMU_VPR_INFO_INDEX_CYA_HI                     3
 #define NV_PFB_PRI_MMU_VPR_INFO_FETCH                          2:2
 
-#endif /* __nv_gk208b_fb_hwref_h__ */
+#endif /* __hwref_gk208b_fb_h__ */

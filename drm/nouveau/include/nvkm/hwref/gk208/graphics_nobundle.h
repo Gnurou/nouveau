@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk208_graphics_nobundle_hwref_h__
-#define __nv_gk208_graphics_nobundle_hwref_h__
+#ifndef __hwref_gk208_graphics_nobundle_h__
+#define __hwref_gk208_graphics_nobundle_h__
 
 #define NV_PGRAPH_INTR                                    0x400100
 #define NV_PGRAPH_INTR_NOTIFY                                  0:0
@@ -877,4 +877,4 @@
 #define NV_PGRAPH_ZCULL_SAVE_RESTORE_SUBREGION_HEADER_BYTES_PER_GPC       0xc0
 #define NV_PGRAPH_ZCULL_SUBREGION_QTY                           16
 
-#endif /* __nv_gk208_graphics_nobundle_hwref_h__ */
+#endif /* __hwref_gk208_graphics_nobundle_h__ */

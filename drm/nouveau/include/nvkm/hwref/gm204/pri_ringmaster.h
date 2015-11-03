@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm204_pri_ringmaster_hwref_h__
-#define __nv_gm204_pri_ringmaster_hwref_h__
+#ifndef __hwref_gm204_pri_ringmaster_h__
+#define __hwref_gm204_pri_ringmaster_h__
 
 #define NV_PPRIV_MASTER_RING_COMMAND                      0x12004c
 #define NV_PPRIV_MASTER_RING_COMMAND_CMD                       5:0
@@ -47,4 +47,4 @@
 #define NV_PPRIV_MASTER_RING_ENUMERATE_RESULTS_ROP_L2     0x12006c
 #define NV_PPRIV_MASTER_RING_ENUMERATE_RESULTS_ROP_L2_COUNT    4:0
 
-#endif /* __nv_gm204_pri_ringmaster_hwref_h__ */
+#endif /* __hwref_gm204_pri_ringmaster_h__ */

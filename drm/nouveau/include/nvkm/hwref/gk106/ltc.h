@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk106_ltc_hwref_h__
-#define __nv_gk106_ltc_hwref_h__
+#ifndef __hwref_gk106_ltc_h__
+#define __hwref_gk106_ltc_h__
 
 #define NV_PLTCG_LTC0_LTS0_INTR                           0x141020
 #define NV_PLTCG_LTC0_LTS0_CBC_CTRL_1                     0x1410c8
@@ -94,4 +94,4 @@
 #define NV_PLTCG_LTCS_LTSS_DSTG_ZBC_DEPTH_CLEAR_VALUE_FIELD   31:0
 #define NV_PLTCG_LTC0_LTS0_CBC_BASE_ALIGNMENT_SHIFT             11
 
-#endif /* __nv_gk106_ltc_hwref_h__ */
+#endif /* __hwref_gk106_ltc_h__ */

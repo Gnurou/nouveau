@@ -19,12 +19,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk110b_pri_ringstation_sys_hwref_h__
-#define __nv_gk110b_pri_ringstation_sys_hwref_h__
+#ifndef __hwref_gk110b_pri_ringstation_sys_h__
+#define __hwref_gk110b_pri_ringstation_sys_h__
 
 #define NV_PPRIV_SYS_MASTER_SM_CONFIG(i)          (0x122300+(i)*4)
 #define NV_PPRIV_SYS_PRIV_DECODE_CONFIG                   0x122204
 #define NV_PPRIV_SYS_PRIV_DECODE_CONFIG_RING                   2:0
 #define NV_PPRIV_SYS_PRIV_DECODE_CONFIG_RING_DROP_ON_RING_NOT_STARTED        1
 
-#endif /* __nv_gk110b_pri_ringstation_sys_hwref_h__ */
+#endif /* __hwref_gk110b_pri_ringstation_sys_h__ */

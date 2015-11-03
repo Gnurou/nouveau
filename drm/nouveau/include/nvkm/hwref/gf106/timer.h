@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf106_timer_hwref_h__
-#define __nv_gf106_timer_hwref_h__
+#ifndef __hwref_gf106_timer_h__
+#define __hwref_gf106_timer_h__
 
 #define NV_PTIMER_PRI_TIMEOUT                               0x9080
 #define NV_PTIMER_PRI_TIMEOUT_PERIOD                          23:0
@@ -28,4 +28,4 @@
 #define NV_PTIMER_PRI_TIMEOUT_SAVE_0                        0x9084
 #define NV_PTIMER_PRI_TIMEOUT_SAVE_1                        0x9088
 
-#endif /* __nv_gf106_timer_hwref_h__ */
+#endif /* __hwref_gf106_timer_h__ */

@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_mcp89_fifo_hwref_h__
-#define __nv_mcp89_fifo_hwref_h__
+#ifndef __hwref_mcp89_fifo_h__
+#define __hwref_mcp89_fifo_h__
 
 #define NV_PFIFO_INTR_0                                     0x2100
 #define NV_PFIFO_INTR_0_PIO_ERROR                              8:8
@@ -34,4 +34,4 @@
 #define NV_PFIFO_RUNLIST                                    0x32ec
 #define NV_PFIFO_PREEMPT                                    0x32fc
 
-#endif /* __nv_mcp89_fifo_hwref_h__ */
+#endif /* __hwref_mcp89_fifo_h__ */

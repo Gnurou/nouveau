@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf114_fb_hwref_h__
-#define __nv_gf114_fb_hwref_h__
+#ifndef __hwref_gf114_fb_h__
+#define __hwref_gf114_fb_h__
 
 #define NV_PFB_PRI_MMU_CTRL                               0x100c80
 #define NV_PFB_PRI_MMU_CTRL_VM_PG_SIZE                         0:0
@@ -37,4 +37,4 @@
 #define NV_PFB_PRI_MMU_INVALIDATE_ALL_PDB                      1:1
 #define NV_PFB_PRI_MMU_INVALIDATE_TRIGGER                    31:31
 
-#endif /* __nv_gf114_fb_hwref_h__ */
+#endif /* __hwref_gf114_fb_h__ */

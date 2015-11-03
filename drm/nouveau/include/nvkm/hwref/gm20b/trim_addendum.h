@@ -19,9 +19,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm20b_trim_addendum_hwref_h__
-#define __nv_gm20b_trim_addendum_hwref_h__
+#ifndef __hwref_gm20b_trim_addendum_h__
+#define __hwref_gm20b_trim_addendum_h__
 
 #define NV_PTRIM_GPC_BCAST_GPCPLL_NDIV_SLOWDOWN_DEBUG NV_PTRIM_GPC_BCAST_NDIV_SLOWDOWN_DEBUG
 
-#endif /* __nv_gm20b_trim_addendum_hwref_h__ */
+#endif /* __hwref_gm20b_trim_addendum_h__ */

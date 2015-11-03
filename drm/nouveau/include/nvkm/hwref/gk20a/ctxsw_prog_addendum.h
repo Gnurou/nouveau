@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk20a_ctxsw_prog_addendum_hwref_h__
-#define __nv_gk20a_ctxsw_prog_addendum_hwref_h__
+#ifndef __hwref_gk20a_ctxsw_prog_addendum_h__
+#define __hwref_gk20a_ctxsw_prog_addendum_h__
 
 #define NV_CTXSW_MAIN_IMAGE_PRIV_ACCESS_MAP_CONFIG            0xa0
 #define NV_CTXSW_MAIN_IMAGE_PRIV_ACCESS_MAP_CONFIG_MODE        1:0
@@ -30,4 +30,4 @@
 #define NV_CTXSW_MAIN_IMAGE_PRIV_ACCESS_MAP_ADDR_HI           0xa8
 #define NV_CTXSW_MAIN_IMAGE_MISC_OPTIONS_VERIF_FEATURES        3:3
 
-#endif /* __nv_gk20a_ctxsw_prog_addendum_hwref_h__ */
+#endif /* __hwref_gk20a_ctxsw_prog_addendum_h__ */

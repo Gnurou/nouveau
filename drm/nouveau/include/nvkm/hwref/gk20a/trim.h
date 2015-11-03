@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk20a_trim_hwref_h__
-#define __nv_gk20a_trim_hwref_h__
+#ifndef __hwref_gk20a_trim_h__
+#define __hwref_gk20a_trim_h__
 
 #define NV_PTRIM_SYS_GPCPLL_CFG                           0x137000
 #define NV_PTRIM_SYS_GPCPLL_CFG_ENABLE                         0:0
@@ -66,4 +66,4 @@
 #define NV_PTRIM_GPC_BCAST_NDIV_SLOWDOWN_DEBUG            0x1328a0
 #define NV_PTRIM_GPC_BCAST_NDIV_SLOWDOWN_DEBUG_PLL_DYNRAMP_DONE_SYNCED   24:24
 
-#endif /* __nv_gk20a_trim_hwref_h__ */
+#endif /* __hwref_gk20a_trim_h__ */

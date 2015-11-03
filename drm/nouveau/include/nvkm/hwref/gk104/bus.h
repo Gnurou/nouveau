@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk104_bus_hwref_h__
-#define __nv_gk104_bus_hwref_h__
+#ifndef __hwref_gk104_bus_h__
+#define __hwref_gk104_bus_h__
 
 #define NV_PBUS_INTR_0                                      0x1100
 #define NV_PBUS_INTR_0_PRI_SQUASH                              1:1
@@ -45,4 +45,4 @@
 #define NV_PBUS_BAR2_BLOCK_MODE_VIRTUAL                          1
 #define NV_PBUS_BAR2_BLOCK_PTR_SHIFT                            12
 
-#endif /* __nv_gk104_bus_hwref_h__ */
+#endif /* __hwref_gk104_bus_h__ */

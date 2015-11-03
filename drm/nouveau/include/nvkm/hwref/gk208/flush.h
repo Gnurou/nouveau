@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gk208_flush_hwref_h__
-#define __nv_gk208_flush_hwref_h__
+#ifndef __hwref_gk208_flush_h__
+#define __hwref_gk208_flush_h__
 
 #define NV_UFLUSH_L2_SYSMEM_INVALIDATE                     0x70004
 #define NV_UFLUSH_L2_SYSMEM_INVALIDATE_PENDING                 0:0
@@ -36,4 +36,4 @@
 #define NV_UFLUSH_FB_FLUSH_PENDING_BUSY                          1
 #define NV_UFLUSH_FB_FLUSH_OUTSTANDING                         1:1
 
-#endif /* __nv_gk208_flush_hwref_h__ */
+#endif /* __hwref_gk208_flush_h__ */

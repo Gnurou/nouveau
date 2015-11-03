@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm204_fb_hwref_h__
-#define __nv_gm204_fb_hwref_h__
+#ifndef __hwref_gm204_fb_h__
+#define __hwref_gm204_fb_h__
 
 #define NV_PFB_FBHUB_NUM_ACTIVE_LTCS                      0x100800
 #define NV_PFB_PRI_MMU_CTRL                               0x100c80
@@ -69,4 +69,4 @@
 #define NV_PFB_PRI_MMU_WPR_INFO_INDEX_WPR2_ADDR_HI               5
 #define NV_PFB_PRI_MMU_PHYS_SECURE                        0x100ce4
 
-#endif /* __nv_gm204_fb_hwref_h__ */
+#endif /* __hwref_gm204_fb_h__ */

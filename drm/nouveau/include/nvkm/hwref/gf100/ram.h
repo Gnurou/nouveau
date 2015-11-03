@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf100_ram_hwref_h__
-#define __nv_gf100_ram_hwref_h__
+#ifndef __hwref_gf100_ram_h__
+#define __hwref_gf100_ram_h__
 
 #define NV_RAMIN_BASE_SHIFT                                     12
 #define NV_RAMIN_ALLOC_SIZE                                 0x1000
@@ -81,4 +81,4 @@
 #define NV_RAMUSERD_BASE_SHIFT                                  12
 #define NV_RAMRL_ENTRY_CHID                      (0*32+6):(0*32+0)
 
-#endif /* __nv_gf100_ram_hwref_h__ */
+#endif /* __hwref_gf100_ram_h__ */

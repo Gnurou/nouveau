@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf104_trim_hwref_h__
-#define __nv_gf104_trim_hwref_h__
+#ifndef __hwref_gf104_trim_h__
+#define __hwref_gf104_trim_h__
 
 #define NV_PTRIM_SYS_GPCPLL_CFG                           0x137000
 #define NV_PTRIM_SYS_GPCPLL_CFG_ENABLE                         0:0
@@ -64,4 +64,4 @@
 #define NV_PTRIM_GPC_CLK_CNTR_NCGPCCLK_CNT(i) (0x134128+(i)*0x200)
 #define NV_PTRIM_GPC_CLK_CNTR_NCGPCCLK_CNT_VALUE              19:0
 
-#endif /* __nv_gf104_trim_hwref_h__ */
+#endif /* __hwref_gf104_trim_h__ */

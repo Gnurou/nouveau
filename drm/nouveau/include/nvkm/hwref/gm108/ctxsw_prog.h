@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm108_ctxsw_prog_hwref_h__
-#define __nv_gm108_ctxsw_prog_hwref_h__
+#ifndef __hwref_gm108_ctxsw_prog_h__
+#define __hwref_gm108_ctxsw_prog_h__
 
 #define NV_CTXSW_FECS_HEADER                                 0x100
 #define NV_CTXSW_MAIN_IMAGE_NUM_GPCS                             8
@@ -71,4 +71,4 @@
 #define NV_CTXSW_EXTENDED_SM_DSM_PERF_COUNTER_CONTROL_REGISTER_STRIDE        2
 #define NV_CTXSW_EXTENDED_SM_DSM_PERF_COUNTER_REGISTER_STRIDE    0
 
-#endif /* __nv_gm108_ctxsw_prog_hwref_h__ */
+#endif /* __hwref_gm108_ctxsw_prog_h__ */

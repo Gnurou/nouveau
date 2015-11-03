@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm20b_ram_hwref_h__
-#define __nv_gm20b_ram_hwref_h__
+#ifndef __hwref_gm20b_ram_h__
+#define __hwref_gm20b_ram_h__
 
 #define NV_RAMIN_BASE_SHIFT                                     12
 #define NV_RAMIN_ALLOC_SIZE                                 0x1000
@@ -105,4 +105,4 @@
 #define NV_RAMRL_ENTRY_TSG_LENGTH                            31:26
 #define NV_RAMRL_ENTRY_SIZE                                      8
 
-#endif /* __nv_gm20b_ram_hwref_h__ */
+#endif /* __hwref_gm20b_ram_h__ */

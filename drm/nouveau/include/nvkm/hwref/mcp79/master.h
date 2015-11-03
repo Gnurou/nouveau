@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_mcp79_master_hwref_h__
-#define __nv_mcp79_master_hwref_h__
+#ifndef __hwref_mcp79_master_h__
+#define __hwref_mcp79_master_h__
 
 #define NV_PMC_BOOT_0                                            0
 #define NV_PMC_BOOT_0_MINOR_REVISION                           3:0
@@ -46,4 +46,4 @@
 #define NV_PMC_ENABLE_PGRAPH                                 12:12
 #define NV_PMC_ENABLE_PFB                                    20:20
 
-#endif /* __nv_mcp79_master_hwref_h__ */
+#endif /* __hwref_mcp79_master_h__ */

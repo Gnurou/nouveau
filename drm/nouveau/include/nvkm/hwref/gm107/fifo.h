@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm107_fifo_hwref_h__
-#define __nv_gm107_fifo_hwref_h__
+#ifndef __hwref_gm107_fifo_h__
+#define __hwref_gm107_fifo_h__
 
 #define NV_PFIFO_BAR1_BASE                                  0x2254
 #define NV_PFIFO_BAR1_BASE_PTR                                27:0
@@ -158,4 +158,4 @@
 #define NV_PFIFO_PBDMA_STATUS_CHSW                           15:15
 #define NV_PFIFO_PBDMA_STATUS_CHSW_IN_PROGRESS                   1
 
-#endif /* __nv_gm107_fifo_hwref_h__ */
+#endif /* __hwref_gm107_fifo_h__ */

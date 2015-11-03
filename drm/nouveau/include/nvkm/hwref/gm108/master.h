@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gm108_master_hwref_h__
-#define __nv_gm108_master_hwref_h__
+#ifndef __hwref_gm108_master_h__
+#define __hwref_gm108_master_h__
 
 #define NV_PMC_BOOT_0                                            0
 #define NV_PMC_BOOT_0_MINOR_REVISION                           3:0
@@ -74,4 +74,4 @@
 #define NV_PMC_ELPG_ENABLE_PFB                               20:20
 #define NV_PMC_ELPG_ENABLE_HUB                               29:29
 
-#endif /* __nv_gm108_master_hwref_h__ */
+#endif /* __hwref_gm108_master_h__ */

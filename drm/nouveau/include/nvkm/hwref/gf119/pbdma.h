@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gf119_pbdma_hwref_h__
-#define __nv_gf119_pbdma_hwref_h__
+#ifndef __hwref_gf119_pbdma_h__
+#define __hwref_gf119_pbdma_h__
 
 #define NV_PPBDMA_GP_ENTRY1                             0x10000004
 #define NV_PPBDMA_GP_ENTRY1_GET_HI                             7:0
@@ -137,4 +137,4 @@
 #define NV_PPBDMA_INTR_STALL_LBREQ                             8:8
 #define NV_UDMA_NOP                                              8
 
-#endif /* __nv_gf119_pbdma_hwref_h__ */
+#endif /* __hwref_gf119_pbdma_h__ */

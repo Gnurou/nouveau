@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_gt218_pwr_pri_hwref_h__
-#define __nv_gt218_pwr_pri_hwref_h__
+#ifndef __hwref_gt218_pwr_pri_h__
+#define __hwref_gt218_pwr_pri_h__
 
 #define NV_PPWR_FALCON_IRQSSET                            0x10a000
 #define NV_PPWR_FALCON_IRQSSET_SWGEN0                          6:6
@@ -132,4 +132,4 @@
 #define NV_PPWR_PMU_BAR0_CTL                              0x10a7ac
 #define NV_PPWR_PMU_BAR0_ERROR_STATUS                     0x10a7b0
 
-#endif /* __nv_gt218_pwr_pri_hwref_h__ */
+#endif /* __hwref_gt218_pwr_pri_h__ */
