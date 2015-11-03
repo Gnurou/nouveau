@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __nv_chipids_hwref_h__
-#define __nv_chipids_hwref_h__
+#ifndef __hwref_chipids_h__
+#define __hwref_chipids_h__
 
 #define __nv_g80__                 0x80
 #define __nv_g84__                 0x84
@@ -59,54 +59,54 @@
 #define __nv_gm206__              0x126
 #define __nv_gm20b__              0x12b
 #define __nv_gpu_is_g8x(x) ((x)!=(x)\
-		|| ((x)==__nv_g98__)\
 		|| ((x)==__nv_g80__)\
 		|| ((x)==__nv_g84__)\
 		|| ((x)==__nv_g86__)\
-		|| ((x)==__nv_g96__)\
-		|| ((x)==__nv_g94__)\
 		|| ((x)==__nv_g92__)\
+		|| ((x)==__nv_g94__)\
+		|| ((x)==__nv_g96__)\
+		|| ((x)==__nv_g98__)\
 	)
 
 #define __nv_gpu_is_tesla(x) ((x)!=(x)\
-		|| ((x)==__nv_mcp79__)\
-		|| ((x)==__nv_mcp77__)\
-		|| ((x)==__nv_mcp89__)\
 		|| ((x)==__nv_g200__)\
 		|| ((x)==__nv_gt215__)\
 		|| ((x)==__nv_gt216__)\
 		|| ((x)==__nv_gt218__)\
+		|| ((x)==__nv_mcp77__)\
+		|| ((x)==__nv_mcp79__)\
+		|| ((x)==__nv_mcp89__)\
 	)
 
 #define __nv_gpu_is_fermi(x) ((x)!=(x)\
 		|| ((x)==__nv_gf100__)\
-		|| ((x)==__nv_gf110__)\
-		|| ((x)==__nv_gf106__)\
 		|| ((x)==__nv_gf104__)\
-		|| ((x)==__nv_gf117__)\
+		|| ((x)==__nv_gf106__)\
 		|| ((x)==__nv_gf108__)\
+		|| ((x)==__nv_gf110__)\
 		|| ((x)==__nv_gf114__)\
-		|| ((x)==__nv_gf119__)\
 		|| ((x)==__nv_gf116__)\
+		|| ((x)==__nv_gf117__)\
+		|| ((x)==__nv_gf119__)\
 	)
 
 #define __nv_gpu_is_kepler(x) ((x)!=(x)\
 		|| ((x)==__nv_gk104__)\
 		|| ((x)==__nv_gk106__)\
 		|| ((x)==__nv_gk107__)\
-		|| ((x)==__nv_gk110b__)\
 		|| ((x)==__nv_gk110__)\
+		|| ((x)==__nv_gk110b__)\
 		|| ((x)==__nv_gk208__)\
 		|| ((x)==__nv_gk208b__)\
 		|| ((x)==__nv_gk20a__)\
 	)
 
 #define __nv_gpu_is_maxwell(x) ((x)!=(x)\
-		|| ((x)==__nv_gm20b__)\
-		|| ((x)==__nv_gm204__)\
 		|| ((x)==__nv_gm107__)\
-		|| ((x)==__nv_gm206__)\
 		|| ((x)==__nv_gm108__)\
+		|| ((x)==__nv_gm204__)\
+		|| ((x)==__nv_gm206__)\
+		|| ((x)==__nv_gm20b__)\
 	)
 
-#endif /* __nv_chipids_hwref_h__ */
+#endif /* __hwref_chipids_h__ */

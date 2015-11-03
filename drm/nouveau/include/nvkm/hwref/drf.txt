@@ -31,31 +31,31 @@ To refer to a specific register, say, create a macro to take the
 'd' and 'r' as parameters and construct the appropriate name using
 token concatenation:
 
-    #define NV_DRF_REG(d, r)             NV_ ## d ## _ ## r
+    #define dr(d, r)             NV_ ## d ## _ ## r
 
-Invocation would be: NV_DRF_REG(PGRAPH, STATUS) for the NV_PGRAPH_STATUS
+Invocation would be: dr(PGRAPH, STATUS) for the NV_PGRAPH_STATUS
 register above.
 
 For fields (bit locations), append 'f'.
 
-    #define NV_DRF_FIELD(d, r, f)        NV_ ## d ## _ ## r ## _ ## f
+    #define drf(d, r, f)        NV_ ## d ## _ ## r ## _ ## f
 
 For specific field value enumerants add 'v':
 
-    #define NV_DRF_FIELD_VAL(d, r, f, v) NV_ ## d ## _ ## r ## _ ## f ## _ ## v
+    #define drfv(d, r, f, v) NV_ ## d ## _ ## r ## _ ## f ## _ ## v
 
 To refer to the high part of a range (here, a bit field) use a
 conditional ternary as follows: ( <0|1> ? <hi> : <lo> )
 
-    #define NV_DRF_FIELD_HI(d, r, f) ( 1 ? NV_DRF_FIELD(d, r, f) )
-    #define NV_DRF_FIELD_LO(d, r, f) ( 0 ? NV_DRF_FIELD(d, r, f) )
+    #define drf_hi(d, r, f) ( 1 ? drf(d, r, f) )
+    #define drf_lo(d, r, f) ( 0 ? drf(d, r, f) )
 
 The example below shows how we arrive at the high and low bit numbers.
 
     #define NV_PGRAPH_FOO_BAR 2:1
 
-NV_DRF_FIELD_HI(PGRAPH,FOO,BAR) expands to ( 1 ? 2:1 ) -> 2
-NV_DRF_FIELD_LO(PGRAPH,FOO,BAR) expands to ( 0 ? 2:1 ) -> 1
+drf_hi(PGRAPH,FOO,BAR) expands to ( 1 ? 2:1 ) -> 2
+drf_hi(PGRAPH,FOO,BAR) expands to ( 0 ? 2:1 ) -> 1
 
 From these we can create various macros for managing the bits within fields:
 placing field values, extracting them, masking them, etc.
@@ -110,7 +110,7 @@ the previous example:
 
 The following would be correct usage to form a new register value for
 the example register "D_R":
-     drf_setv(D,R, F, BAZ) | drf_setv(D,R, FTOO, ENABLED)
+     drf_set_v(D,R, F, BAZ) | drf_setv(D,R, FTOO, ENABLED)
 
 The following illustrates the reverse, inspecting values on a per-field
 basis:
@@ -119,5 +119,3 @@ basis:
      if ( drf_get(D, R, FTOO, d_r) == drf_v(D, R, FTOO, ENABLED) ) {
          cout << "the FTOO value of register d_r is _ENABLED";
      }
-
-
