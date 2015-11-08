@@ -30,6 +30,7 @@
 #include <drm/drm_dp_helper.h>
 
 #include <nvif/class.h>
+#include <nvif/cl0002.h>
 #include <nvif/cl5070.h>
 #include <nvif/cl507a.h>
 #include <nvif/cl507b.h>
