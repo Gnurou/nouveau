@@ -95,6 +95,7 @@ int
 nouveau_display_scanoutpos_head(struct drm_crtc *crtc, int *vpos, int *hpos,
 				ktime_t *stime, ktime_t *etime)
 {
+	/*
 	struct {
 		struct nv04_disp_mthd_v0 base;
 		struct nv04_disp_scanoutpos_v0 scan;
@@ -129,6 +130,8 @@ nouveau_display_scanoutpos_head(struct drm_crtc *crtc, int *vpos, int *hpos,
 	if (*vpos < 0)
 		ret |= DRM_SCANOUTPOS_IN_VBLANK;
 	return ret;
+	*/
+	return 0;
 }
 
 int
@@ -153,6 +156,7 @@ int
 nouveau_display_vblstamp(struct drm_device *dev, unsigned int pipe,
 			 int *max_error, struct timeval *time, unsigned flags)
 {
+	/*
 	struct drm_crtc *crtc;
 
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
@@ -162,6 +166,7 @@ nouveau_display_vblstamp(struct drm_device *dev, unsigned int pipe,
 					&crtc->hwmode);
 		}
 	}
+	*/
 
 	return -EINVAL;
 }
