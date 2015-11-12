@@ -23,8 +23,6 @@ extern void nouveau_gem_object_del(struct drm_gem_object *);
 extern int nouveau_gem_object_open(struct drm_gem_object *, struct drm_file *);
 extern void nouveau_gem_object_close(struct drm_gem_object *,
 				     struct drm_file *);
-extern int nouveau_gem_ioctl_set_tiling(struct drm_device *, void *,
-					struct drm_file *);
 extern int nouveau_gem_ioctl_new(struct drm_device *, void *,
 				 struct drm_file *);
 extern int nouveau_gem_ioctl_pushbuf(struct drm_device *, void *,
@@ -37,6 +35,8 @@ extern int nouveau_gem_ioctl_cpu_fini(struct drm_device *, void *,
 				      struct drm_file *);
 extern int nouveau_gem_ioctl_info(struct drm_device *, void *,
 				  struct drm_file *);
+extern int nouveau_gem_ioctl_set_info(struct drm_device *, void *,
+				      struct drm_file *);
 
 extern int nouveau_gem_prime_pin(struct drm_gem_object *);
 struct reservation_object *nouveau_gem_prime_res_obj(struct drm_gem_object *);
