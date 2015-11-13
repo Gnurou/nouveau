@@ -240,6 +240,8 @@ nvkm_vm_unmap_pgt(struct nvkm_vm *vm, int big, u32 fpde, u32 lpde)
 			mmu->func->map_pgt(vpgd->obj, pde, vpgt->mem);
 		}
 
+		mmu->func->flush(vm);
+
 		nvkm_memory_del(&pgt);
 	}
 }
@@ -265,6 +267,8 @@ nvkm_vm_map_pgt(struct nvkm_vm *vm, u32 pde, u32 type)
 	list_for_each_entry(vpgd, &vm->pgd_list, head) {
 		mmu->func->map_pgt(vpgd->obj, pde, vpgt->mem);
 	}
+
+	mmu->func->flush(vm);
 
 	vpgt->refcount[big]++;
 	return 0;
