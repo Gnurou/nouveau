@@ -24,6 +24,7 @@
 #include "ctxgf100.h"
 
 #include <subdev/fb.h>
+#include <subdev/ltc.h>
 #include <subdev/mc.h>
 #include <subdev/timer.h>
 
@@ -1272,6 +1273,7 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	const struct gf100_grctx_func *grctx = gr->func->grctx;
 	struct nvkm_subdev *subdev = &gr->base.engine.subdev;
 	struct nvkm_device *device = subdev->device;
+	struct nvkm_ltc *ltc = device->ltc;
 	struct nvkm_memory *chan;
 	struct gf100_grctx info;
 	int ret, i;
@@ -1366,6 +1368,8 @@ gf100_grctx_generate(struct gf100_gr *gr)
 		ret = -EBUSY;
 		goto done;
 	}
+
+	nvkm_ltc_flush(ltc);
 
 	gr->data = kmalloc(gr->size, GFP_KERNEL);
 	if (gr->data) {
