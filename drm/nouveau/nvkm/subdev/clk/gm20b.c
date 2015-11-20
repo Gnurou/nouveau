@@ -1231,6 +1231,7 @@ gm20b_clk_init(struct nvkm_clk *base)
 static int
 gm20b_clk_init_fused_params(struct gm20b_clk *priv)
 {
+#ifdef CONFIG_TEGRA
 	struct gm20b_pllg_fused_params *p = &priv->fused_params;
 	u32 val;
 
@@ -1252,6 +1253,7 @@ gm20b_clk_init_fused_params(struct gm20b_clk *priv)
 
 		return 0;
 	}
+#endif
 
 	/* If no fused parameters, we will try internal calibration later */
 	return -EINVAL;
