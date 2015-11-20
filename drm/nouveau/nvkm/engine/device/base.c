@@ -2255,6 +2255,11 @@ nvkm_device_init(struct nvkm_device *device)
 
 	nvkm_acpi_init(device);
 
+	ret = 0;
+
+	if (nvkm_need_secure_boot(device))
+		ret = nvkm_secure_boot_init(device);
+
 	time = ktime_to_us(ktime_get()) - time;
 	nvdev_trace(device, "init completed in %lldus\n", time);
 	return 0;
@@ -2574,11 +2579,6 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 		}
 #undef _
 	}
-
-	ret = 0;
-
-	if (nvkm_need_secure_boot(device))
-		ret = nvkm_secure_boot_init(device);
 
 done:
 	mutex_unlock(&nv_devices_mutex);
