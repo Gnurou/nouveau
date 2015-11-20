@@ -1234,6 +1234,7 @@ gm20b_clk_init_fused_params(struct gm20b_clk *priv)
 	struct gm20b_pllg_fused_params *p = &priv->fused_params;
 	u32 val;
 
+#ifdef CONFIG_TEGRA
 	tegra_fuse_readl(FUSE_RESERVED_CALIB0, &val);
 	if ((val >> FUSE_RESERVED_CALIB0_FUSE_REV_SHIFT) &
 			MASK(FUSE_RESERVED_CALIB0_FUSE_REV_WIDTH)) {
@@ -1252,6 +1253,7 @@ gm20b_clk_init_fused_params(struct gm20b_clk *priv)
 
 		return 0;
 	}
+#endif
 
 	/* If no fused parameters, we will try internal calibration later */
 	return -EINVAL;
