@@ -576,33 +576,39 @@ lsf_ucode_img_build(const struct firmware *bl, const struct firmware *code,
 }
 
 /**
- * lsf_ucode_img_load_fecs() - load and prepare the LS FECS ucode image
+ * lsf_ucode_img_load_generic() - load and prepare a LS ucode image
  *
- * Load the FECS microcode, bootloader and signature and pack them into a single
+ * Load the LS microcode, bootloader and signature and pack them into a single
  * blob. Also generate the corresponding ucode descriptor.
  */
 static int
-lsf_ucode_img_load_fecs(struct nvkm_device *device, struct lsf_ucode_img *img)
+lsf_ucode_img_load_generic(struct nvkm_device *device,
+			   struct lsf_ucode_img *img, const char *falcon_name,
+			   const u32 falcon_id)
 {
-	const struct firmware *fecs_bl, *fecs_code, *fecs_data;
+	const struct firmware *bl, *code, *data;
 	struct lsf_ucode_desc *lsf_desc;
+	char f[64];
 	int err;
 
 	img->ucode_header = NULL;
 
-	err = sb_get_firmware(device, "fecs_bl", &fecs_bl);
+	snprintf(f, sizeof(f), "%s_bl", falcon_name);
+	err = sb_get_firmware(device, f, &bl);
 	if (err)
 		goto error;
 
-	err = sb_get_firmware(device, "fecs_inst", &fecs_code);
+	snprintf(f, sizeof(f), "%s_inst", falcon_name);
+	err = sb_get_firmware(device, f, &code);
 	if (err)
 		goto free_bl;
 
-	err = sb_get_firmware(device, "fecs_data", &fecs_data);
+	snprintf(f, sizeof(f), "%s_data", falcon_name);
+	err = sb_get_firmware(device, f, &data);
 	if (err)
 		goto free_inst;
 
-	img->ucode_data = lsf_ucode_img_build(fecs_bl, fecs_code, fecs_data,
+	img->ucode_data = lsf_ucode_img_build(bl, code, data,
 					      &img->ucode_desc);
 	if (IS_ERR(img->ucode_data)) {
 		err = PTR_ERR(img->ucode_data);
@@ -610,13 +616,14 @@ lsf_ucode_img_load_fecs(struct nvkm_device *device, struct lsf_ucode_img *img)
 	}
 	img->ucode_size = img->ucode_desc.image_size;
 
-	lsf_desc = sb_load_firmware(device, "fecs_sig", sizeof(*lsf_desc));
+	snprintf(f, sizeof(f), "%s_sig", falcon_name);
+	lsf_desc = sb_load_firmware(device, f, sizeof(*lsf_desc));
 	if (IS_ERR(lsf_desc)) {
 		err = PTR_ERR(lsf_desc);
 		goto free_image;
 	}
 	/* not needed? the signature should already have the right value */
-	lsf_desc->falcon_id = LSF_FALCON_ID_FECS;
+	lsf_desc->falcon_id = falcon_id;
 	memcpy(&img->lsb_header.signature, lsf_desc, sizeof(*lsf_desc));
 	img->falcon_id = lsf_desc->falcon_id;
 	kfree(lsf_desc);
@@ -627,13 +634,27 @@ lsf_ucode_img_load_fecs(struct nvkm_device *device, struct lsf_ucode_img *img)
 free_image:
 	kfree(img->ucode_data);
 free_data:
-	release_firmware(fecs_data);
+	release_firmware(data);
 free_inst:
-	release_firmware(fecs_code);
+	release_firmware(code);
 free_bl:
-	release_firmware(fecs_bl);
+	release_firmware(bl);
 error:
 	return err;
+}
+
+static int
+lsf_ucode_img_load_fecs(struct nvkm_device *device, struct lsf_ucode_img *img)
+{
+	return lsf_ucode_img_load_generic(device, img, "fecs",
+					  LSF_FALCON_ID_FECS);
+}
+
+static int
+lsf_ucode_img_load_gpccs(struct nvkm_device *device, struct lsf_ucode_img *img)
+{
+	return lsf_ucode_img_load_generic(device, img, "gpccs",
+					  LSF_FALCON_ID_GPCCS);
 }
 
 /**
@@ -695,6 +716,7 @@ lsf_ucode_img_load(struct nvkm_device *device, lsf_load_func load_func)
 static const lsf_load_func lsf_load_funcs[] = {
 	[LSF_FALCON_ID_END] = NULL, /* reserve enough space */
 	[LSF_FALCON_ID_FECS] = lsf_ucode_img_load_fecs,
+	[LSF_FALCON_ID_GPCCS] = lsf_ucode_img_load_gpccs,
 };
 
 
