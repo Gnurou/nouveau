@@ -173,6 +173,33 @@ nouveau_bo_fixup_align(struct nouveau_bo *nvbo, u32 flags,
 	*size = roundup(*size, PAGE_SIZE);
 }
 
+void
+nouveau_bo_update_tiling(struct nouveau_drm *drm, struct nouveau_bo *nvbo,
+			 struct nvkm_mem *mem)
+{
+	switch (drm->device.info.family) {
+	case NV_DEVICE_INFO_V0_TNT:
+	case NV_DEVICE_INFO_V0_CELSIUS:
+	case NV_DEVICE_INFO_V0_KELVIN:
+	case NV_DEVICE_INFO_V0_RANKINE:
+	case NV_DEVICE_INFO_V0_CURIE:
+		break;
+	case NV_DEVICE_INFO_V0_TESLA:
+		if (drm->device.info.chipset != 0x50)
+			mem->memtype = (nvbo->tile_flags & 0x7f00) >> 8;
+		break;
+	case NV_DEVICE_INFO_V0_FERMI:
+	case NV_DEVICE_INFO_V0_KEPLER:
+	case NV_DEVICE_INFO_V0_MAXWELL:
+		mem->memtype = (nvbo->tile_flags & 0xff00) >> 8;
+		break;
+	default:
+		NV_WARN(drm, "%s: unhandled family type %x\n", __func__,
+			drm->device.info.family);
+		break;
+	}
+}
+
 int
 nouveau_bo_new(struct drm_device *dev, int size, int align,
 	       uint32_t flags, uint32_t tile_mode, uint32_t tile_flags,
@@ -488,6 +515,40 @@ nouveau_bo_sync_for_cpu(struct nouveau_bo *nvbo)
 	for (i = 0; i < ttm_dma->ttm.num_pages; i++)
 		dma_sync_single_for_cpu(device->dev, ttm_dma->dma_address[i],
 					PAGE_SIZE, DMA_FROM_DEVICE);
+}
+
+int
+nouveau_bo_sync(struct nouveau_bo *nvbo, struct nouveau_channel *chan,
+		bool exclusive, bool intr)
+{
+	struct fence *fence;
+	struct reservation_object *resv = nvbo->bo.resv;
+	struct reservation_object_list *fobj;
+	int ret = 0, i;
+
+	if (!exclusive) {
+		ret = reservation_object_reserve_shared(resv);
+
+		if (ret)
+			return ret;
+	}
+
+	fobj = reservation_object_get_list(resv);
+	fence = reservation_object_get_excl(resv);
+
+	if (fence && (!exclusive || !fobj || !fobj->shared_count))
+		return nouveau_fence_sync(fence, chan, intr);
+
+	if (!exclusive || !fobj)
+		return ret;
+
+	for (i = 0; i < fobj->shared_count && !ret; ++i) {
+		fence = rcu_dereference_protected(fobj->shared[i],
+						reservation_object_held(resv));
+		ret |= nouveau_fence_sync(fence, chan, intr);
+	}
+
+	return ret;
 }
 
 int
@@ -1073,7 +1134,7 @@ nouveau_bo_move_m2mf(struct ttm_buffer_object *bo, int evict, bool intr,
 	}
 
 	mutex_lock_nested(&cli->mutex, SINGLE_DEPTH_NESTING);
-	ret = nouveau_fence_sync(nouveau_bo(bo), chan, true, intr);
+	ret = nouveau_bo_sync(nouveau_bo(bo), chan, true, intr);
 	if (ret == 0) {
 		ret = drm->ttm.move(chan, bo, &bo->mem, new_mem);
 		if (ret == 0) {

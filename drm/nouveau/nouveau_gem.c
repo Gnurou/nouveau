@@ -490,7 +490,7 @@ validate_list(struct nouveau_channel *chan, struct nouveau_cli *cli,
 			return ret;
 		}
 
-		ret = nouveau_fence_sync(nvbo, chan, !!b->write_domains, true);
+		ret = nouveau_bo_sync(nvbo, chan, !!b->write_domains, true);
 		if (unlikely(ret)) {
 			if (ret != -ERESTARTSYS)
 				NV_PRINTK(err, cli, "fail post-validate sync\n");
@@ -551,7 +551,12 @@ nouveau_gem_pushbuf_validate(struct nouveau_channel *chan,
 		validate_fini(op, NULL, NULL);
 		return ret;
 	}
-	*apply_relocs = ret;
+
+	if (apply_relocs)
+		*apply_relocs = ret;
+	else
+		BUG_ON(ret > 0);
+
 	return 0;
 }
 
@@ -665,6 +670,126 @@ nouveau_gem_pushbuf_reloc_apply(struct nouveau_cli *cli,
 }
 
 int
+nouveau_gem_ioctl_pushbuf_2(struct drm_device *dev, void *data,
+                            struct drm_file *file_priv)
+{
+	struct nouveau_abi16 *abi16 = nouveau_abi16_get(file_priv);
+	struct nouveau_cli *cli = nouveau_cli(file_priv);
+	struct nouveau_abi16_chan *temp;
+	struct nouveau_drm *drm = nouveau_drm(dev);
+	struct drm_nouveau_gem_pushbuf_2 *req = data;
+	struct drm_nouveau_gem_pushbuf_bo *bo = NULL;
+	struct nouveau_channel *chan = NULL;
+	struct validate_op op;
+	struct nouveau_fence *fence = NULL;
+	uint32_t *push = NULL;
+	int i, ret = 0;
+
+	if (unlikely(!abi16))
+		return -ENOMEM;
+
+	list_for_each_entry(temp, &abi16->channels, head) {
+		if (temp->chan->chid == req->channel) {
+			chan = temp->chan;
+			break;
+		}
+	}
+
+	if (!chan)
+		return nouveau_abi16_put(abi16, -ENOENT);
+
+	if (!chan->dma.ib_max)
+		return nouveau_abi16_put(abi16, -ENODEV);
+
+	req->vram_available = drm->gem.vram_available;
+	req->gart_available = drm->gem.gart_available;
+
+	if (unlikely(req->nr_push > NOUVEAU_GEM_MAX_PUSH)) {
+		NV_PRINTK(err, cli, "pushbuf push count exceeds limit: %d max %d\n",
+		           req->nr_push, NOUVEAU_GEM_MAX_PUSH);
+		return nouveau_abi16_put(abi16, -EINVAL);
+	}
+
+	if (unlikely(req->nr_buffers > NOUVEAU_GEM_MAX_BUFFERS)) {
+		NV_PRINTK(err, cli, "pushbuf bo count exceeds limit: %d max %d\n",
+		           req->nr_buffers, NOUVEAU_GEM_MAX_BUFFERS);
+		return nouveau_abi16_put(abi16, -EINVAL);
+	}
+
+	if (req->nr_push) {
+		push = u_memcpya(req->push, req->nr_push, 8);
+		if (IS_ERR(push))
+			return nouveau_abi16_put(abi16, PTR_ERR(push));
+	}
+
+	if (req->nr_buffers) {
+		bo = u_memcpya(req->buffers, req->nr_buffers, sizeof(*bo));
+		if (IS_ERR(bo)) {
+			u_free(push);
+			return nouveau_abi16_put(abi16, PTR_ERR(bo));
+		}
+	}
+
+	/* Validate buffer list */
+	ret = nouveau_gem_pushbuf_validate(chan, file_priv, bo, req->buffers,
+					   req->nr_buffers, &op, NULL);
+	if (ret) {
+		if (ret != -ERESTARTSYS)
+			NV_PRINTK(err, cli, "validate: %d\n", ret);
+
+		goto out_prevalid;
+	}
+
+	if (req->flags & NOUVEAU_GEM_PUSHBUF_2_FENCE_WAIT) {
+		ret = nouveau_fence_sync_fd(req->fence, chan, true);
+		if (ret) {
+			NV_PRINTK(err, cli, "fence wait: %d\n", ret);
+			goto out;
+		}
+	}
+
+	ret = nouveau_dma_wait(chan, req->nr_push + 1, 16);
+	if (ret) {
+		NV_PRINTK(err, cli, "nv50cal_space: %d\n", ret);
+		goto out;
+	}
+
+	for (i = 0; i < req->nr_push * 2; i += 2)
+		nv50_dma_push(chan, push[i], push[i + 1]);
+
+	ret = nouveau_fence_new(chan, false, &fence);
+	if (ret) {
+		NV_PRINTK(err, cli, "error fencing pushbuf: %d\n", ret);
+		WIND_RING(chan);
+		goto out;
+	}
+
+	if (req->flags & NOUVEAU_GEM_PUSHBUF_2_FENCE_EMIT) {
+		struct fence *f = fence_get(&fence->base);
+		ret = nouveau_fence_install(f, "nv-pushbuf", &req->fence);
+
+		if (ret) {
+			fence_put(f);
+			NV_PRINTK(err, cli, "fence install: %d\n", ret);
+			WIND_RING(chan);
+			goto out;
+		}
+	}
+
+out:
+	if (req->nr_buffers)
+		validate_fini(&op, fence, bo);
+
+	nouveau_fence_unref(&fence);
+
+out_prevalid:
+	u_free(bo);
+	u_free(push);
+
+	return nouveau_abi16_put(abi16, ret);
+}
+
+int
 nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 			  struct drm_file *file_priv)
 {
@@ -764,8 +889,8 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 			struct nouveau_bo *nvbo = (void *)(unsigned long)
 				bo[push[i].bo_index].user_priv;
 
-			nv50_dma_push(chan, nvbo, push[i].offset,
-				      push[i].length);
+			nv50_dma_push_bo(chan, nvbo, push[i].offset,
+				         push[i].length);
 		}
 	} else
 	if (drm->device.info.chipset >= 0x25) {
@@ -923,3 +1048,55 @@ nouveau_gem_ioctl_info(struct drm_device *dev, void *data,
 	return ret;
 }
 
+int
+nouveau_gem_ioctl_set_info(struct drm_device *dev, void *data,
+			   struct drm_file *file_priv)
+{
+	struct nouveau_drm *drm = nouveau_drm(dev);
+	struct nouveau_cli *cli = nouveau_cli(file_priv);
+	struct nvkm_fb *pfb = nvxx_fb(&drm->device);
+	struct drm_nouveau_gem_info *req = data;
+	struct drm_gem_object *gem;
+	struct nouveau_bo *nvbo;
+	struct nvkm_vma *vma;
+	int ret = 0;
+
+	if (!nvkm_fb_memtype_valid(pfb, req->tile_flags)) {
+		NV_PRINTK(err, cli, "bad page flags: 0x%08x\n", req->tile_flags);
+		return -EINVAL;
+	}
+
+	gem = drm_gem_object_lookup(dev, file_priv, req->handle);
+	if (!gem)
+		return -ENOENT;
+	nvbo = nouveau_gem_object(gem);
+
+	/* We can only change info of PRIME-imported buffers */
+	if (nvbo->bo.type != ttm_bo_type_sg) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = ttm_bo_reserve(&nvbo->bo, false, false, false, NULL);
+	if (ret)
+		goto out;
+
+	if (nvbo->tile_mode != req->tile_mode ||
+	    nvbo->tile_flags != req->tile_flags) {
+		nvbo->tile_mode = req->tile_mode;
+		nvbo->tile_flags = req->tile_flags;
+
+		nouveau_bo_update_tiling(drm, nvbo, nvbo->bo.mem.mm_node);
+
+		/* remap over existing mapping with new tile parameters */
+		vma = nouveau_bo_vma_find(nvbo, cli->vm);
+		if (vma)
+			nvkm_vm_map(vma, nvbo->bo.mem.mm_node);
+	}
+
+	ttm_bo_unreserve(&nvbo->bo);
+
+out:
+	drm_gem_object_unreference_unlocked(gem);
+	return ret;
+}

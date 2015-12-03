@@ -11,4 +11,5 @@ nvkm-y += nvkm/core/object.o
 nvkm-y += nvkm/core/oproxy.o
 nvkm-y += nvkm/core/option.o
 nvkm-y += nvkm/core/ramht.o
+nvkm-y += nvkm/core/secure_boot.o
 nvkm-y += nvkm/core/subdev.o
