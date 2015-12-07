@@ -1375,6 +1375,7 @@ sb_setup_falcon(struct nvkm_device *device)
 {
 	struct secure_boot *sb = device->secure_boot_state;
 	const u32 reg_base = sb->base + 0xe00;
+	u32 inst_loc;
 	int err;
 
 	err = falcon_wait_clear_halt_interrupt(device);
@@ -1398,9 +1399,14 @@ sb_setup_falcon(struct nvkm_device *device)
 		  0x4 | 0x2);
 
 	/* Set context */
+	if (device->fb->ram)
+		inst_loc = 0x0; /* FB */
+	else
+		inst_loc = 0x3; /* Non-coherent sysmem */
+
 	nvkm_mask(device, sb->base + 0x048, 0x1, 0x1);
 	nvkm_wr32(device, sb->base + 0x480, ((sb->inst->addr >> 12) & 0xfffffff)
-					    | (1 << 29) | (1 << 30));
+					    | (inst_loc << 28) | (1 << 30));
 
 	return 0;
 }
