@@ -702,40 +702,6 @@ gf100_gr_zbc_init(struct gf100_gr *gr)
 		gf100_gr_zbc_clear_depth(gr, index);
 }
 
-/**
- * Wait until GR goes idle. GR is considered idle if it is disabled by the
- * MC (0x200) register, or GR is not busy and a context switch is not in
- * progress.
- */
-int
-gf100_gr_wait_idle(struct gf100_gr *gr)
-{
-	struct nvkm_subdev *subdev = &gr->base.engine.subdev;
-	struct nvkm_device *device = subdev->device;
-	unsigned long end_jiffies = jiffies + msecs_to_jiffies(2000);
-	bool gr_enabled, ctxsw_active, gr_busy;
-
-	do {
-		/*
-		 * required to make sure FIFO_ENGINE_STATUS (0x2640) is
-		 * up-to-date
-		 */
-		nvkm_rd32(device, 0x400700);
-
-		gr_enabled = nvkm_rd32(device, 0x200) & 0x1000;
-		ctxsw_active = nvkm_rd32(device, 0x2640) & 0x8000;
-		gr_busy = nvkm_rd32(device, 0x40060c) & 0x1;
-
-		if (!gr_enabled || (!gr_busy && !ctxsw_active))
-			return 0;
-	} while (time_before(jiffies, end_jiffies));
-
-	nvkm_error(subdev,
-		   "wait for idle timeout (en: %d, ctxsw: %d, busy: %d)\n",
-		   gr_enabled, ctxsw_active, gr_busy);
-	return -EAGAIN;
-}
-
 void
 gf100_gr_mmio(struct gf100_gr *gr, const struct gf100_gr_pack *p)
 {
