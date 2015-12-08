@@ -198,7 +198,7 @@ gk20a_gr_init(struct gf100_gr *gr)
 	if (ret)
 		return ret;
 
-	ret = gf100_gr_wait_idle(gr);
+	ret = gk104_gr_wait_idle(gr);
 	if (ret)
 		return ret;
 
