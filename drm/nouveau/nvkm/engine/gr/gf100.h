@@ -198,11 +198,12 @@ extern struct gf100_gr_ucode gf100_gr_gpccs_ucode;
 extern struct gf100_gr_ucode gk110_gr_fecs_ucode;
 extern struct gf100_gr_ucode gk110_gr_gpccs_ucode;
 
-int  gf100_gr_wait_idle(struct gf100_gr *);
 void gf100_gr_mmio(struct gf100_gr *, const struct gf100_gr_pack *);
 void gf100_gr_icmd(struct gf100_gr *, const struct gf100_gr_pack *);
 void gf100_gr_mthd(struct gf100_gr *, const struct gf100_gr_pack *);
 int  gf100_gr_init_ctxctl(struct gf100_gr *);
+
+int  gk104_gr_wait_idle(struct gf100_gr *);
 
 /* register init value lists */
 
