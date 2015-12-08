@@ -45,7 +45,7 @@ gm20b_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 
 	gf100_gr_mmio(gr, gr->fuc_sw_ctx);
 
-	gf100_gr_wait_idle(gr);
+	gk104_gr_wait_idle(gr);
 
 	idle_timeout_save = nvkm_rd32(device, 0x404154);
 	nvkm_wr32(device, 0x404154, 0x00000000);
@@ -72,13 +72,13 @@ gm20b_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 
 	gm204_grctx_generate_405b60(gr);
 
-	gf100_gr_wait_idle(gr);
+	gk104_gr_wait_idle(gr);
 
 	nvkm_wr32(device, 0x404154, idle_timeout_save);
-	gf100_gr_wait_idle(gr);
+	gk104_gr_wait_idle(gr);
 
 	gf100_gr_mthd(gr, gr->fuc_method);
-	gf100_gr_wait_idle(gr);
+	gk104_gr_wait_idle(gr);
 
 	gf100_gr_icmd(gr, gr->fuc_bundle);
 	grctx->pagepool(info);
