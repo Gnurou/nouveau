@@ -988,7 +988,7 @@ sb_prepare_ls_blob(struct nvkm_device *device)
 		goto cleanup;
 	}
 
-	err = nvkm_gpuobj_new(device, mgr.wpr_size, 0x1000, false, NULL,
+	err = nvkm_gpuobj_new(device, 0x80000, 0x80000, false, NULL,
 			      &sb->ls_blob);
 	if (err)
 		goto cleanup;
