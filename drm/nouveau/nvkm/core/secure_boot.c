@@ -1142,7 +1142,7 @@ sb_prepare_hs_blob(struct nvkm_device *device)
 	hsf_img_patch_desc(sb, acr_image);
 
 	/* Generate HS BL descriptor */
-	   hsf_img_populate_bl_desc(acr_image, &sb->acr_bl_desc);
+	hsf_img_populate_bl_desc(acr_image, &sb->acr_bl_desc);
 
 	/* Create ACR blob and copy HS data to it */
 	hsbin_hdr = acr_image;
