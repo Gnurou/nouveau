@@ -38,6 +38,10 @@
 #include "nouveau_dma.h"
 #include "nouveau_fence.h"
 
+#ifdef CONFIG_SYNC
+#include "../drivers/staging/android/sync.h"
+#endif
+
 static const struct fence_ops nouveau_fence_ops_uevent;
 static const struct fence_ops nouveau_fence_ops_legacy;
 
@@ -388,66 +392,25 @@ nouveau_fence_wait(struct nouveau_fence *fence, bool lazy, bool intr)
 }
 
 int
-nouveau_fence_sync(struct nouveau_bo *nvbo, struct nouveau_channel *chan, bool exclusive, bool intr)
+nouveau_fence_sync(struct fence *fence, struct nouveau_channel *chan, bool intr)
 {
 	struct nouveau_fence_chan *fctx = chan->fence;
-	struct fence *fence;
-	struct reservation_object *resv = nvbo->bo.resv;
-	struct reservation_object_list *fobj;
+	struct nouveau_channel *prev = NULL;
 	struct nouveau_fence *f;
-	int ret = 0, i;
+	bool must_wait = true;
+	int ret = 0;
 
-	if (!exclusive) {
-		ret = reservation_object_reserve_shared(resv);
-
-		if (ret)
-			return ret;
+	f = nouveau_local_fence(fence, chan->drm);
+	if (f) {
+		rcu_read_lock();
+		prev = rcu_dereference(f->channel);
+		if (prev && (prev == chan || fctx->sync(f, prev, chan) == 0))
+			must_wait = false;
+		rcu_read_unlock();
 	}
 
-	fobj = reservation_object_get_list(resv);
-	fence = reservation_object_get_excl(resv);
-
-	if (fence && (!exclusive || !fobj || !fobj->shared_count)) {
-		struct nouveau_channel *prev = NULL;
-		bool must_wait = true;
-
-		f = nouveau_local_fence(fence, chan->drm);
-		if (f) {
-			rcu_read_lock();
-			prev = rcu_dereference(f->channel);
-			if (prev && (prev == chan || fctx->sync(f, prev, chan) == 0))
-				must_wait = false;
-			rcu_read_unlock();
-		}
-
-		if (must_wait)
-			ret = fence_wait(fence, intr);
-
-		return ret;
-	}
-
-	if (!exclusive || !fobj)
-		return ret;
-
-	for (i = 0; i < fobj->shared_count && !ret; ++i) {
-		struct nouveau_channel *prev = NULL;
-		bool must_wait = true;
-
-		fence = rcu_dereference_protected(fobj->shared[i],
-						reservation_object_held(resv));
-
-		f = nouveau_local_fence(fence, chan->drm);
-		if (f) {
-			rcu_read_lock();
-			prev = rcu_dereference(f->channel);
-			if (prev && (prev == chan || fctx->sync(f, prev, chan) == 0))
-				must_wait = false;
-			rcu_read_unlock();
-		}
-
-		if (must_wait)
-			ret = fence_wait(fence, intr);
-	}
+	if (must_wait)
+		ret = fence_wait(fence, intr);
 
 	return ret;
 }
@@ -580,11 +543,80 @@ static bool nouveau_fence_enable_signaling(struct fence *f)
 	return ret;
 }
 
+static void nouveau_fence_timeline_value_str(struct fence *fence, char *str,
+					     int size)
+{
+	struct nouveau_fence *f = from_fence(fence);
+	struct nouveau_fence_chan *fctx = nouveau_fctx(f);
+	u32 cur;
+
+	cur = f->channel ? fctx->read(f->channel) : 0;
+	snprintf(str, size, "%d", cur);
+}
+
+static void
+nouveau_fence_value_str(struct fence *fence, char *str, int size)
+{
+	snprintf(str, size, "%d", fence->seqno);
+}
+
 static const struct fence_ops nouveau_fence_ops_uevent = {
 	.get_driver_name = nouveau_fence_get_get_driver_name,
 	.get_timeline_name = nouveau_fence_get_timeline_name,
 	.enable_signaling = nouveau_fence_enable_signaling,
 	.signaled = nouveau_fence_is_signaled,
 	.wait = fence_default_wait,
-	.release = NULL
+	.release = NULL,
+	.fence_value_str = nouveau_fence_value_str,
+	.timeline_value_str = nouveau_fence_timeline_value_str,
 };
+
+int
+nouveau_fence_install(struct fence *fence, const char *name, int *fd_out)
+{
+#ifdef CONFIG_SYNC
+	struct sync_fence *f;
+	int fd;
+
+	fd = get_unused_fd_flags(O_CLOEXEC);
+	if (fd < 0)
+		return fd;
+
+	f = sync_fence_create(name, fence);
+	if (!f) {
+		put_unused_fd(fd);
+		return -ENOMEM;
+	}
+
+	sync_fence_install(f, fd);
+	*fd_out = fd;
+	return 0;
+#else
+	return -ENODEV;
+#endif
+}
+
+int
+nouveau_fence_sync_fd(int fence_fd, struct nouveau_channel *chan, bool intr)
+{
+#ifdef CONFIG_SYNC
+	int i, ret = 0;
+	struct sync_fence *fence;
+
+	fence = sync_fence_fdget(fence_fd);
+	if (!fence)
+		return -EINVAL;
+
+	for (i = 0; i < fence->num_fences; ++i) {
+		struct fence *pt = fence->cbs[i].sync_pt;
+
+		ret |= nouveau_fence_sync(pt, chan, intr);
+	}
+
+	sync_fence_put(fence);
+
+	return ret;
+#else
+	return -ENODEV;
+#endif
+}

@@ -26,6 +26,7 @@
 
 #include <core/notify.h>
 #include <core/option.h>
+#include <core/secure_boot.h>
 
 #include <subdev/bios.h>
 
@@ -1991,6 +1992,10 @@ nv124_chipset = {
 	.fifo = gm204_fifo_new,
 	.gr = gm204_gr_new,
 	.sw = gf100_sw_new,
+	.secure_boot = {
+		.managed_falcons = BIT(LSF_FALCON_ID_FECS) | BIT(LSF_FALCON_ID_GPCCS),
+		.boot_falcon = LSF_FALCON_ID_PMU,
+	},
 };
 
 static const struct nvkm_device_chip
@@ -2022,6 +2027,10 @@ nv126_chipset = {
 	.fifo = gm204_fifo_new,
 	.gr = gm206_gr_new,
 	.sw = gf100_sw_new,
+	.secure_boot = {
+		.managed_falcons = BIT(LSF_FALCON_ID_FECS) | BIT(LSF_FALCON_ID_GPCCS),
+		.boot_falcon = LSF_FALCON_ID_PMU,
+	},
 };
 
 static const struct nvkm_device_chip
@@ -2029,6 +2038,7 @@ nv12b_chipset = {
 	.name = "GM20B",
 	.bar = gk20a_bar_new,
 	.bus = gf100_bus_new,
+	.clk = gm20b_clk_new,
 	.fb = gk20a_fb_new,
 	.fuse = gm107_fuse_new,
 	.ibus = gk20a_ibus_new,
@@ -2037,11 +2047,16 @@ nv12b_chipset = {
 	.mc = gk20a_mc_new,
 	.mmu = gf100_mmu_new,
 	.timer = gk20a_timer_new,
+	.volt = gm20b_volt_new,
 	.ce[2] = gm204_ce_new,
 	.dma = gf119_dma_new,
 	.fifo = gm20b_fifo_new,
 	.gr = gm20b_gr_new,
 	.sw = gf100_sw_new,
+	.secure_boot = {
+		.managed_falcons = BIT(LSF_FALCON_ID_FECS),
+		.boot_falcon = LSF_FALCON_ID_PMU,
+	},
 };
 
 static int
@@ -2250,6 +2265,11 @@ nvkm_device_init(struct nvkm_device *device)
 
 	nvkm_acpi_init(device);
 
+	ret = 0;
+
+	if (nvkm_need_secure_boot(device))
+		ret = nvkm_secure_boot_init(device);
+
 	time = ktime_to_us(ktime_get()) - time;
 	nvdev_trace(device, "init completed in %lldus\n", time);
 	return 0;
@@ -2273,6 +2293,10 @@ nvkm_device_del(struct nvkm_device **pdevice)
 	if (device) {
 		mutex_lock(&nv_devices_mutex);
 		device->disable_mask = 0;
+
+		if (nvkm_need_secure_boot(device))
+			nvkm_secure_boot_fini(device);
+
 		for (i = NVKM_SUBDEV_NR - 1; i >= 0; i--) {
 			struct nvkm_subdev *subdev =
 				nvkm_device_subdev(device, i);
@@ -2566,7 +2590,6 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 #undef _
 	}
 
-	ret = 0;
 done:
 	mutex_unlock(&nv_devices_mutex);
 	return ret;

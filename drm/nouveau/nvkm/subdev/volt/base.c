@@ -65,6 +65,15 @@ nvkm_volt_set(struct nvkm_volt *volt, u32 uv)
 	return ret;
 }
 
+int
+nvkm_volt_get_voltage_by_id(struct nvkm_volt *volt, u8 id)
+{
+	if (id >= volt->vid_nr)
+		return -EINVAL;
+
+	return volt->vid[id].uv;
+}
+
 static int
 nvkm_volt_map(struct nvkm_volt *volt, u8 id)
 {
