@@ -191,6 +191,11 @@ struct lsf_wpr_header {
 #define LSF_IMAGE_STATUS_BOOTSTRAP_READY		6
 };
 
+struct flcn_u64 {
+	u32 lo;
+	u32 hi;
+};
+
 /**
  * struct flcn_bl_dmem_desc - DMEM bootloader descriptor
  * @signature:		16B signature for secure code. 0s if no secure code
@@ -218,13 +223,13 @@ struct flcn_bl_dmem_desc {
 	u32 reserved[4];
 	u32 signature[4];
 	u32 ctx_dma;
-	u32 code_dma_base;
+	struct flcn_u64 code_dma_base;
 	u32 non_sec_code_off;
 	u32 non_sec_code_size;
 	u32 sec_code_off;
 	u32 sec_code_size;
 	u32 code_entry_point;
-	u32 data_dma_base;
+	struct flcn_u64 data_dma_base;
 	u32 data_size;
 };
 
@@ -683,11 +688,15 @@ lsf_ucode_img_populate_bl_desc(struct lsf_ucode_img *img,
 
 	memset(desc, 0, sizeof(*desc));
 	desc->ctx_dma = FALCON_DMAIDX_UCODE;
-	desc->code_dma_base = lower_32_bits(
-		(addr_base + pdesc->app_resident_code_offset) >> 8);
+	desc->code_dma_base.lo = lower_32_bits(
+		(addr_base + pdesc->app_resident_code_offset));
+	desc->code_dma_base.hi = upper_32_bits(
+		(addr_base + pdesc->app_resident_code_offset));
 	desc->non_sec_code_size = pdesc->app_resident_code_size;
-	desc->data_dma_base = lower_32_bits(
-		(addr_base + pdesc->app_resident_data_offset) >> 8);
+	desc->data_dma_base.lo = lower_32_bits(
+		(addr_base + pdesc->app_resident_data_offset));
+	desc->data_dma_base.hi = upper_32_bits(
+		(addr_base + pdesc->app_resident_data_offset));
 	desc->data_size = pdesc->app_resident_data_size;
 	desc->code_entry_point = pdesc->app_imem_entry;
 }
@@ -1123,8 +1132,8 @@ hsf_img_populate_bl_desc(void *acr_image, struct flcn_bl_dmem_desc *bl_desc)
 	 * We need to set code_dma_base to the virtual address of the acr_blob,
 	 * and add this address to data_dma_base before writing it into DMEM
 	 */
-	bl_desc->code_dma_base = 0;
-	bl_desc->data_dma_base = load_hdr->data_dma_base >> 8;
+	bl_desc->code_dma_base.lo = 0;
+	bl_desc->data_dma_base.lo = load_hdr->data_dma_base;
 	bl_desc->data_size = load_hdr->data_size;
 }
 
@@ -1424,7 +1433,7 @@ sb_load_hs_bl(struct nvkm_device *device)
 	struct secure_boot *sb = device->secure_boot_state;
 	struct hs_bin_hdr *hdr = sb->hsbl_blob;
 	struct hsflcn_bl_desc *hsbl_desc = sb->hsbl_blob + hdr->header_offset;
-	u32 acr_blob_vma_base = lower_32_bits(sb->acr_blob_vma.offset >> 8);
+	u32 acr_blob_vma_base = lower_32_bits(sb->acr_blob_vma.offset);
 	void *hsbl_code = sb->hsbl_blob + hdr->data_offset;
 	u32 code_size = ALIGN(hsbl_desc->bl_code_size, 256);
 	u32 dst_blk;
@@ -1435,12 +1444,12 @@ sb_load_hs_bl(struct nvkm_device *device)
 	 * Copy HS bootloader interface structure where the HS descriptor
 	 * expects it to be, after updating virtual address of DMA bases
 	 */
-	sb->acr_bl_desc.code_dma_base += acr_blob_vma_base;
-	sb->acr_bl_desc.data_dma_base += acr_blob_vma_base;
+	sb->acr_bl_desc.code_dma_base.lo += acr_blob_vma_base;
+	sb->acr_bl_desc.data_dma_base.lo += acr_blob_vma_base;
 	falcon_copy_to_dmem(device, sb->base, hsbl_desc->bl_desc_dmem_load_off,
 			    &sb->acr_bl_desc, sizeof(sb->acr_bl_desc), 0);
-	sb->acr_bl_desc.code_dma_base -= acr_blob_vma_base;
-	sb->acr_bl_desc.data_dma_base -= acr_blob_vma_base;
+	sb->acr_bl_desc.code_dma_base.lo -= acr_blob_vma_base;
+	sb->acr_bl_desc.data_dma_base.lo -= acr_blob_vma_base;
 
 	/* Copy HS bootloader code to IMEM */
 	dst_blk = (nvkm_rd32(device, sb->base + 0x108) & 0x1ff) -
