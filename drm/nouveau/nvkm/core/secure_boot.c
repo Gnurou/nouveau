@@ -1090,7 +1090,13 @@ struct hsflcn_acr_desc {
 		} region_props[FLCN_ACR_MAX_REGIONS];
 	} regions;
 	u32 nonwpr_ucode_blob_size;
-	u64 nonwpr_ucode_blob_start;
+	u64 nonwpr_ucode_blob_start __attribute__ ((aligned (8)));
+	struct {
+		u32 vpr_enabled;
+		u32 vpr_start;
+		u32 vpr_end;
+		u32 hdcp_policies;
+	} vpr_desc;
 };
 
 /**
