@@ -1357,6 +1357,10 @@ gf100_gr_init_ctxctl(struct gf100_gr *gr)
 		if (!nvkm_is_secure(device, LSF_FALCON_ID_FECS))
 			gf100_gr_init_fw(gr, 0x409000, &gr->fuc409c,
 					 &gr->fuc409d);
+		else
+			/* force vid mem access for BL */
+			if (device->type != NVKM_DEVICE_TEGRA)
+				nvkm_wr32(device, 0x409a20, 0x80000002);
 
 		if (!nvkm_is_secure(device, LSF_FALCON_ID_GPCCS))
 			gf100_gr_init_fw(gr, 0x41a000, &gr->fuc41ac,
