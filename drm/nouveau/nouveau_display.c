@@ -154,6 +154,7 @@ int
 nouveau_display_vblstamp(struct drm_device *dev, unsigned int pipe,
 			 int *max_error, struct timeval *time, unsigned flags)
 {
+#ifndef CONFIG_ARCH_TEGRA
 	struct drm_crtc *crtc;
 
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
@@ -163,6 +164,7 @@ nouveau_display_vblstamp(struct drm_device *dev, unsigned int pipe,
 					&crtc->hwmode);
 		}
 	}
+#endif
 
 	return -EINVAL;
 }
