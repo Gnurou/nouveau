@@ -195,6 +195,7 @@ struct lsf_wpr_header {
  * @signature:		16B signature for secure code. 0s if no secure code
  * @ctx_dma:		DMA context to be used by BL while loading code/data
  * @code_dma_base:	256B-aligned Physical FB Address where code is located
+ *			(falcon's $xcbase register)
  * @non_sec_code_off:	offset from code_dma_base where the non-secure code is
  *                      located. The offset must be multiple of 256 to help perf
  * @non_sec_code_size:	the size of the nonSecure code part.
@@ -205,6 +206,7 @@ struct lsf_wpr_header {
  * @code_entry_point:	code entry point which will be invoked by BL after
  *                      code is loaded.
  * @data_dma_base:	256B aligned Physical FB Address where data is located.
+ *			(falcon's $xdbase register)
  * @data_size:		size of data block. Should be multiple of 256B
  *
  * Structure used by the bootloader to load the rest of the code. This has
@@ -327,7 +329,7 @@ struct lsf_ucode_mgr {
  * struct hs_bin_hdr - header of HS firmware and bootloader files
  * @bin_magic:		always 0x10de
  * @bin_ver:		version of the bin format
- * @bin_size:		entire image size excluding this header
+ * @bin_size:		entire image size including this header
  * @header_offset:	offset of the firmware/bootloader header in the file
  * @data_offset:	offset of the firmware/bootloader payload in the file
  * @data_size:		size of the payload
@@ -1038,6 +1040,9 @@ hsf_img_patch_signature(struct nvkm_device *device, void *acr_image)
 
 /**
  * struct hsflcn_acr_desc - data section of the HS firmware
+ *
+ * This header is to be copied at the beginning of DMEM by the HS bootloader.
+ *
  * @signature:		signature of ACR ucode
  * @wpr_region_id:	region ID holding the WPR header and its details
  * @wpr_offset:		offset from the WPR region holding the wpr header
