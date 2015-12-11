@@ -557,11 +557,11 @@ lsf_ucode_img_build(const struct firmware *bl, const struct firmware *code,
 	desc->app_imem_entry = 0;
 	desc->app_dmem_offset = 0;
 	desc->app_resident_code_offset = 0;
-	desc->app_resident_code_size = code->size;
+	desc->app_resident_code_size = ALIGN(code->size, BL_DESC_BLK_SIZE);
 
 	pos = ALIGN(pos + desc->app_resident_code_size, BL_DESC_BLK_SIZE);
 	desc->app_resident_data_offset = pos - desc->app_start_offset;
-	desc->app_resident_data_size = data->size;
+	desc->app_resident_data_size = ALIGN(data->size, BL_DESC_BLK_SIZE);
 
 	desc->image_size = ALIGN(bl_desc->size, BL_DESC_BLK_SIZE) +
 			   desc->app_size;
