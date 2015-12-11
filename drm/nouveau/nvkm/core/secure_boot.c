@@ -980,9 +980,9 @@ sb_prepare_ls_blob(struct nvkm_device *device)
 	 */
 	lsf_ucode_mgr_fill_headers(sb, &mgr);
 
-	if (mgr.wpr_size > sb->wpr_size) {
+	if (device->type == NVKM_DEVICE_TEGRA && mgr.wpr_size > sb->wpr_size) {
 		nvdev_error(device, "WPR region too small to host FW blob!\n");
-		nvdev_error(device, "required: %d bytes\n", sb->ls_blob_size);
+		nvdev_error(device, "required: %d bytes\n", mgr.wpr_size);
 		nvdev_error(device, "WPR size: %d bytes\n", sb->wpr_size);
 		err = -ENOMEM;
 		goto cleanup;
@@ -995,6 +995,12 @@ sb_prepare_ls_blob(struct nvkm_device *device)
 
 	nvdev_debug(device, "%d managed LS falcons, WPR size is %d bytes\n",
 		    mgr.count, mgr.wpr_size);
+
+	/* On non-Tegra devices the WPR will be programmed around the LS blob */
+	if (device->type != NVKM_DEVICE_TEGRA) {
+		sb->wpr_addr = sb->ls_blob->addr;
+		sb->wpr_size = sb->ls_blob_size;
+	}
 
 	/* write LS blob */
 	lsf_ucode_mgr_write_wpr(device, &mgr, sb->ls_blob);
@@ -1091,8 +1097,9 @@ struct hsflcn_acr_desc {
  * hsf_img_patch_desc() - patch the HS firmware with location of the LS blob
  */
 static void
-hsf_img_patch_desc(struct secure_boot *sb, void *acr_image)
+hsf_img_patch_desc(struct nvkm_device *device, void *acr_image)
 {
+	struct secure_boot *sb = device->secure_boot_state;
 	struct hs_bin_hdr *hsbin_hdr = acr_image;
 	struct acr_fw_header *fw_hdr = acr_image + hsbin_hdr->header_offset;
 	struct acr_load_header *load_hdr = acr_image + fw_hdr->hdr_offset;
@@ -1101,7 +1108,16 @@ hsf_img_patch_desc(struct secure_boot *sb, void *acr_image)
 
 	desc->nonwpr_ucode_blob_start = sb->ls_blob->addr;
 	desc->nonwpr_ucode_blob_size = sb->ls_blob_size;
-	desc->regions.no_regions = sb->ls_blob_nb_regions;
+
+	/* Only set WPR regions on non-Tegra devices */
+	if (device->type != NVKM_DEVICE_TEGRA) {
+		desc->wpr_region_id = 1;
+		desc->regions.no_regions = 1;
+		desc->regions.region_props[0].region_id = 1;
+		desc->regions.region_props[0].start_addr = sb->ls_blob->addr >> 8;
+		desc->regions.region_props[0].end_addr = (sb->ls_blob->addr + 0x80000 - 0x1000) >> 8;
+	}
+
 	desc->wpr_offset = 0;
 }
 
@@ -1152,7 +1168,7 @@ sb_prepare_hs_blob(struct nvkm_device *device)
 
 	/* Patch image */
 	hsf_img_patch_signature(device, acr_image);
-	hsf_img_patch_desc(sb, acr_image);
+	hsf_img_patch_desc(device, acr_image);
 
 	/* Generate HS BL descriptor */
 	hsf_img_populate_bl_desc(acr_image, &sb->acr_bl_desc);
@@ -1724,17 +1740,20 @@ nvkm_secure_boot_init(struct nvkm_device *device)
 	}
 	device->secure_boot_state = sb;
 
-	if (device->type == NVKM_DEVICE_TEGRA) {
+	switch (device->type) {
+	case NVKM_DEVICE_TEGRA:
 		err = sb_tegra_read_wpr(device);
 		if (err)
-			goto error;
-	}
-
-	err = sb_init_vm(device);
-	if (err) {
-		kfree(sb);
-		device->secure_boot_state = NULL;
-		goto error;
+			goto error_free;
+		break;
+	case NVKM_DEVICE_PCI:
+	case NVKM_DEVICE_AGP:
+	case NVKM_DEVICE_PCIE:
+		break;
+	default:
+		nvdev_error(device, "device not supported for Secure Boot!\n");
+		err = -EINVAL;
+		goto error_free;
 	}
 
 	switch (device->chip->secure_boot.boot_falcon) {
@@ -1744,11 +1763,19 @@ nvkm_secure_boot_init(struct nvkm_device *device)
 	default:
 		nvdev_error(device, "invalid secure boot falcon\n");
 		err = -EINVAL;
-		goto error;
+		goto error_free;
 	};
+
+	err = sb_init_vm(device);
+	if (err) {
+		goto error_free;
+	}
 
 	return 0;
 
+error_free:
+	kfree(sb);
+	device->secure_boot_state = NULL;
 error:
 	nvdev_error(device, "Secure Boot initialization failed: %d\n", err);
 	return err;
