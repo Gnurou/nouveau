@@ -121,34 +121,6 @@ struct lsf_ucode_desc {
 };
 
 /**
- * struct lsf_wpr_header - LS blob WPR Header
- * @falcon_id:		LS falcon ID
- * @lsb_offset:		offset of the lsb_lsf_header in the WPR region
- * @bootstrap_owner:	secure falcon reponsible for bootstrapping the LS falcon
- * @lazy_bootstrap:	skip bootstrapping by ACR
- * @status:		bootstrapping status
- *
- * An array of these is written at the beginning of the WPR region, one for
- * each managed falcon. The array is terminated by an instance which falcon_id
- * is LSF_FALCON_ID_INVALID.
- */
-struct lsf_wpr_header {
-	u32  falcon_id;
-	u32  lsb_offset;
-	u32  bootstrap_owner;
-#define LSF_BOOTSTRAP_OWNER_DEFAULT	LSF_FALCON_ID_PMU
-	u32  lazy_bootstrap;
-	u32  status;
-#define LSF_IMAGE_STATUS_NONE				0
-#define LSF_IMAGE_STATUS_COPY				1
-#define LSF_IMAGE_STATUS_VALIDATION_CODE_FAILED		2
-#define LSF_IMAGE_STATUS_VALIDATION_DATA_FAILED		3
-#define LSF_IMAGE_STATUS_VALIDATION_DONE		4
-#define LSF_IMAGE_STATUS_VALIDATION_SKIPPED		5
-#define LSF_IMAGE_STATUS_BOOTSTRAP_READY		6
-};
-
-/**
  * struct lsf_lsb_header - LS firmware header
  * @signature:		signature to verify the firmware against
  * @ucode_off:		offset of the ucode blob in the WPR region. The ucode
@@ -188,6 +160,34 @@ struct lsf_lsb_header {
 #define NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_TRUE        1
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_FALSE       0
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE        4
+};
+
+/**
+ * struct lsf_wpr_header - LS blob WPR Header
+ * @falcon_id:		LS falcon ID
+ * @lsb_offset:		offset of the lsb_lsf_header in the WPR region
+ * @bootstrap_owner:	secure falcon reponsible for bootstrapping the LS falcon
+ * @lazy_bootstrap:	skip bootstrapping by ACR
+ * @status:		bootstrapping status
+ *
+ * An array of these is written at the beginning of the WPR region, one for
+ * each managed falcon. The array is terminated by an instance which falcon_id
+ * is LSF_FALCON_ID_INVALID.
+ */
+struct lsf_wpr_header {
+	u32  falcon_id;
+	u32  lsb_offset;
+	u32  bootstrap_owner;
+#define LSF_BOOTSTRAP_OWNER_DEFAULT	LSF_FALCON_ID_PMU
+	u32  lazy_bootstrap;
+	u32  status;
+#define LSF_IMAGE_STATUS_NONE				0
+#define LSF_IMAGE_STATUS_COPY				1
+#define LSF_IMAGE_STATUS_VALIDATION_CODE_FAILED		2
+#define LSF_IMAGE_STATUS_VALIDATION_DATA_FAILED		3
+#define LSF_IMAGE_STATUS_VALIDATION_DONE		4
+#define LSF_IMAGE_STATUS_VALIDATION_SKIPPED		5
+#define LSF_IMAGE_STATUS_BOOTSTRAP_READY		6
 };
 
 /**
