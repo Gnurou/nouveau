@@ -1992,6 +1992,10 @@ nv124_chipset = {
 	.fifo = gm204_fifo_new,
 	.gr = gm204_gr_new,
 	.sw = gf100_sw_new,
+	.secure_boot = {
+		.managed_falcons = BIT(LSF_FALCON_ID_FECS) | BIT(LSF_FALCON_ID_GPCCS),
+		.boot_falcon = LSF_FALCON_ID_PMU,
+	},
 };
 
 static const struct nvkm_device_chip
