@@ -854,7 +854,7 @@ static void
 lsf_ucode_mgr_add_img(struct lsf_ucode_mgr *mgr, struct lsf_ucode_img *img)
 {
 	mgr->count++;
-	list_add(&img->node, &mgr->img_list);
+	list_add_tail(&img->node, &mgr->img_list);
 }
 
 /**
