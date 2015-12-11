@@ -467,16 +467,6 @@ nvkm_gpuobj_memcpy(struct nvkm_gpuobj *dest, u32 dstoffset, void *src,
 		nvkm_wo32(dest, dstoffset + i, *(u32 *)(src + i));
 }
 
-static void
-nvkm_gpuobj_memcpy_from(struct nvkm_gpuobj *src, u32 srcoffset, void *dst,
-			u32 length)
-{
-	int i;
-
-	for (i = 0; i < length; i += 4)
-		*(u32 *)(dst + i) = nvkm_ro32(src, srcoffset + i);
-}
-
 /* TODO share with the GR FW loading routine? */
 static int
 sb_get_firmware(struct nvkm_device *device, const char *fwname,
@@ -497,45 +487,6 @@ sb_get_firmware(struct nvkm_device *device, const char *fwname,
 
 	snprintf(f, sizeof(f), "nvidia/%s/%s.bin", cname, fwname);
 	return request_firmware(fw, f, device->dev);
-}
-
-static void
-falcon_dump_imem(struct nvkm_device *device, u32 base)
-{
-	u32 imem_size = nvkm_rd32(device, base + 0x108) & 0x1ff;
-	u32 i;
-	u32 buf[8];
-
-	imem_size *= 0x100;
-
-	nvkm_wr32(device, 0x0010a180, 0x1 << 25);
-	for (i = 0; i < imem_size / 4; i++) {
-		buf[i % 8] = nvkm_rd32(device, base + 0x184);
-		if (1 && i % 8 == 7)
-			printk("%08x %08x %08x %08x %08x %08x %08x %08x\n",
-			       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5],
-			       buf[6], buf[7]);
-	}
-}
-
-static void
-falcon_dump_dmem(struct nvkm_device *device, u32 base)
-{
-	u32 dmem_size = nvkm_rd32(device, base + 0x108) & 0x3fe00;
-	u32 i;
-	u32 buf[8];
-
-	dmem_size = dmem_size >> 9;
-	dmem_size *= 0x100;
-
-	nvkm_wr32(device, 0x10a1c0, (0x1 << 25));
-	for (i = 0; i < dmem_size / 4; i++) {
-		buf[i % 8] = nvkm_rd32(device, base + 0x1c4);
-		if (1 && i % 8 == 7)
-			printk("%08x %08x %08x %08x %08x %08x %08x %08x\n",
-			       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5],
-			       buf[6], buf[7]);
-	}
 }
 
 /**
@@ -735,9 +686,6 @@ lsf_ucode_img_populate_bl_desc(struct lsf_ucode_img *img,
 	addr_base = sb->wpr_addr + img->lsb_header.ucode_off +
 		pdesc->app_start_offset;
 
-	printk("BL DESC: %llx %x %x\n", sb->wpr_addr, img->lsb_header.ucode_off,
-	       pdesc->app_start_offset);
-
 	memset(desc, 0, sizeof(*desc));
 	desc->ctx_dma = FALCON_DMAIDX_UCODE;
 	desc->code_dma_base.lo = lower_32_bits(
@@ -751,16 +699,6 @@ lsf_ucode_img_populate_bl_desc(struct lsf_ucode_img *img,
 		(addr_base + pdesc->app_resident_data_offset));
 	desc->data_size = pdesc->app_resident_data_size;
 	desc->code_entry_point = pdesc->app_imem_entry;
-
-	printk("ctx_dma: %x\n", desc->ctx_dma);
-	printk("code_dma_base: %08x %08x\n", desc->code_dma_base.hi, desc->code_dma_base.lo);
-	printk("non_sec_code_off: %x\n", desc->non_sec_code_off);
-	printk("non_sec_code_size: %x\n", desc->non_sec_code_size);
-	printk("sec_code_off: %x\n", desc->sec_code_off);
-	printk("sec_code_size: %x\n", desc->sec_code_size);
-	printk("code_entry_point: %x\n", desc->code_entry_point);
-	printk("data_dma_base: %08x %08x\n", desc->data_dma_base.hi, desc->data_dma_base.lo);
-	printk("data_size: %x\n", desc->data_size);
 }
 
 typedef int (*lsf_load_func)(struct nvkm_device *, struct lsf_ucode_img *);
@@ -1055,14 +993,14 @@ sb_prepare_ls_blob(struct nvkm_device *device)
 	if (err)
 		goto cleanup;
 
-	nvdev_error(device, "%d managed LS falcons, WPR size is %d bytes\n",
+	nvdev_debug(device, "%d managed LS falcons, WPR size is %d bytes\n",
 		    mgr.count, mgr.wpr_size);
 
+	/* On non-Tegra devices the WPR will be programmed around the LS blob */
 	if (device->type != NVKM_DEVICE_TEGRA) {
 		sb->wpr_addr = sb->ls_blob->addr;
 		sb->wpr_size = sb->ls_blob_size;
 	}
-	printk("LS blob addr: %llx %x\n", sb->ls_blob->addr, sb->ls_blob->size);
 
 	/* write LS blob */
 	lsf_ucode_mgr_write_wpr(device, &mgr, sb->ls_blob);
@@ -1108,11 +1046,9 @@ hsf_img_patch_signature(struct nvkm_device *device, void *acr_image)
 
 	/* Falcon in debug or production mode? */
 	if ((nvkm_rd32(device, sb->base + 0xc08) >> 20) & 0x1) {
-		printk("FALCON IN DEBUG MODE %x %x\n", fw_hdr->sig_dbg_offset + patch_sig, fw_hdr->sig_dbg_size);
 		sig = acr_image + fw_hdr->sig_dbg_offset;
 		sig_size = fw_hdr->sig_dbg_size;
 	} else {
-		printk("FALCON IN PROD MODE %x %x\n", fw_hdr->sig_prod_offset + patch_sig, fw_hdr->sig_prod_size);
 		sig = acr_image + fw_hdr->sig_prod_offset;
 		sig_size = fw_hdr->sig_prod_size;
 	}
@@ -1223,23 +1159,6 @@ hsf_img_populate_bl_desc(void *acr_image, struct flcn_bl_dmem_desc *bl_desc)
 	bl_desc->data_size = load_hdr->data_size;
 }
 
-/*
-static void
-dump_hsf_desc(void *acr_image)
-{
-	struct hs_bin_hdr *hsbin_hdr = acr_image;
-	struct acr_fw_header *fw_hdr = acr_image + hsbin_hdr->header_offset;
-	struct acr_load_header *load_hdr = acr_image + fw_hdr->hdr_offset;
-	void *hs_data = acr_image + hsbin_hdr->data_offset;
-	u32 *desc = hs_data + load_hdr->data_dma_base;
-
-	int i;
-	for (i = 0; i < sizeof(struct hsflcn_acr_desc) / 4; i += 8)
-		printk("%08x %08x %08x %08x %08x %08x %08x %08x\n",
-		       desc[i], desc[i+1], desc[i+2], desc[i+3], desc[i+4], desc[i+5], desc[i+6], desc[i+7]);
-}
-*/
-
 static int
 sb_prepare_hs_blob(struct nvkm_device *device)
 {
@@ -1256,8 +1175,6 @@ sb_prepare_hs_blob(struct nvkm_device *device)
 	/* Patch image */
 	hsf_img_patch_signature(device, acr_image);
 	hsf_img_patch_desc(device, acr_image);
-
-	//dump_hsf_desc(acr_image);
 
 	/* Generate HS BL descriptor */
 	hsf_img_populate_bl_desc(acr_image, &sb->acr_bl_desc);
@@ -1620,12 +1537,6 @@ sb_execute(struct nvkm_device *device)
 	/* Load the HS bootloader into the falcon's IMEM/DMEM */
 	sb_load_hs_bl(device);
 
-	printk("before ACR exec sctl %x\n", nvkm_rd32(device, 0x0010a240));
-	printk("FECS sctl: %x\n", nvkm_rd32(device, 0x409240));
-	printk("FECS status: %x\n", nvkm_rd32(device, 0x409100));
-	printk("GPCCS sctl: %x\n", nvkm_rd32(device, 0x41a240));
-	printk("GPCCS status: %x\n", nvkm_rd32(device, 0x41a100));
-
 	/* Start the HS bootloader */
 	err = sb_start(device);
 	if (err)
@@ -1633,24 +1544,6 @@ sb_execute(struct nvkm_device *device)
 
 	/* Wait until secure boot completes */
 	err = falcon_wait_for_halt(device);
-	printk("Mailbox after halt: %x\n", nvkm_rd32(device, 0x10a040));
-	printk("Mailbox(0) after halt: %x\n", nvkm_rd32(device, 0x10a450));
-	printk("after ACR exec sctl %x\n", nvkm_rd32(device, 0x0010a240));
-	printk("FECS sctl: %x\n", nvkm_rd32(device, 0x409240));
-	printk("FECS status: %x\n", nvkm_rd32(device, 0x409100));
-	printk("GPCCS sctl: %x\n", nvkm_rd32(device, 0x41a240));
-	printk("GPCCS status: %x\n", nvkm_rd32(device, 0x41a100));
-	/*
-	printk("\n\n DMEM:\n");
-	falcon_dump_dmem(device, 0x409000);
-	printk("\n\n IMEM:\n");
-	falcon_dump_imem(device, 0x409000);
-	printk("\n\n DMEM:\n");
-	falcon_dump_dmem(device, 0x41a000);
-	printk("\n\n IMEM:\n");
-	falcon_dump_imem(device, 0x41a000);
-	*/
-
 	if (err)
 		goto done;
 
@@ -1670,53 +1563,6 @@ const char *managed_falcons_names[] = {
 	[LSF_FALCON_ID_GPCCS] = "GPCCS",
 	[LSF_FALCON_ID_END] = "<invalid>",
 };
-
-static void
-dump_wpr_headers(struct nvkm_device *device)
-{
-	struct secure_boot *sb = device->secure_boot_state;
-	struct nvkm_gpuobj *acr_blob = sb->ls_blob;
-	struct lsf_wpr_header header;
-	struct lsf_lsb_header lheader;
-	u32 pos = 0;
-
-	memset(&header, 0, sizeof(header));
-	nvkm_kmap(acr_blob);
-
-	do {
-		printk("Header at offset %x\n", pos);
-
-		nvkm_gpuobj_memcpy_from(acr_blob, pos, &header, sizeof(header));
-		printk(" falcon_id	: %x\n", header.falcon_id);
-		if (header.falcon_id == LSF_FALCON_ID_INVALID)
-			break;
-		printk(" lsb_offset	: %x\n", header.lsb_offset);
-		printk(" bootstrap_owner	: %x\n", header.bootstrap_owner);
-		printk(" lazy_bootstrap	: %x\n", header.lazy_bootstrap);
-		printk(" status		: %x\n", header.status);
-
-		nvkm_gpuobj_memcpy_from(acr_blob, header.lsb_offset, &lheader,
-					sizeof(lheader));
-		printk("  sig. falcon ID: %x\n", lheader.signature.falcon_id);
-		printk("  prd: %x, dbg: %x\n", lheader.signature.b_prd_present, lheader.signature.b_dbg_present);
-		printk("  ucode_off	: %x\n", lheader.ucode_off);
-		printk("  ucode_size	: %x\n", lheader.ucode_size);
-		printk("  data_size	: %x\n", lheader.data_size);
-		printk("  bl_code_size	: %x\n", lheader.bl_code_size);
-		printk("  bl_imem_off	: %x\n", lheader.bl_imem_off);
-		printk("  bl_data_off	: %x\n", lheader.bl_data_off);
-		printk("  bl_data_size	: %x\n", lheader.bl_data_size);
-		printk("  app_code_off	: %x\n", lheader.app_code_off);
-		printk("  app_code_size	: %x\n", lheader.app_code_size);
-		printk("  app_data_off	: %x\n", lheader.app_data_off);
-		printk("  app_data_size	: %x\n", lheader.app_data_size);
-		printk("  flags		: %x\n", lheader.flags);
-
-		pos += sizeof(header);
-	} while(true);
-
-	nvkm_done(acr_blob);
-}
 
 /**
  * nvkm_secure_boot() - perform secure boot
@@ -1738,10 +1584,10 @@ nvkm_secure_boot(struct nvkm_device *device)
 
 	sb = device->secure_boot_state;
 
-	nvdev_error(device, "performing secure boot of:\n");
+	nvdev_debug(device, "performing secure boot of:\n");
 	for_each_set_bit(falcon_id, &device->chip->secure_boot.managed_falcons,
 			 LSF_FALCON_ID_END)
-		nvdev_error(device, "- %s\n", managed_falcons_names[falcon_id]);
+		nvdev_debug(device, "- %s\n", managed_falcons_names[falcon_id]);
 
 	/* Load all the LS firmwares and prepare the blob */
 	if (!sb->ls_blob) {
@@ -1749,8 +1595,6 @@ nvkm_secure_boot(struct nvkm_device *device)
 		if (err)
 			return err;
 	}
-
-	dump_wpr_headers(device);
 
 	/* Load the HS firmware for the performing falcon */
 	if (!sb->acr_blob) {
@@ -1895,7 +1739,6 @@ nvkm_secure_boot_init(struct nvkm_device *device)
 	struct secure_boot *sb;
 	int err;
 
-	nvdev_error(device, "secure boot init\n");
 	sb = kzalloc(sizeof(*sb), GFP_KERNEL);
 	if (!sb) {
 		err = -ENOMEM;
