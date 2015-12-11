@@ -160,6 +160,7 @@ struct lsf_lsb_header {
 #define NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_TRUE        1
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_FALSE       0
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE        4
+#define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD            8
 };
 
 /**
@@ -798,6 +799,9 @@ lsf_ucode_img_fill_headers(struct lsf_ucode_img *img, u32 offset, u32 falcon_id)
 		lhdr->flags = 0;
 		if (img->falcon_id == falcon_id)
 			lhdr->flags = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
+
+		if (img->falcon_id == LSF_FALCON_ID_GPCCS)
+			lhdr->flags |= NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD;
 
 		/* Align (size bloat) and save off BL descriptor size */
 		lhdr->bl_data_size = ALIGN(sizeof(img->bl_dmem_desc),
