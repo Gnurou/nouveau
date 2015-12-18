@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "nouveau_platform.h"
+#include <linux/version.h>
 
 static int nouveau_platform_probe(struct platform_device *pdev)
 {
@@ -28,7 +29,13 @@ static int nouveau_platform_probe(struct platform_device *pdev)
 	struct drm_device *drm;
 	int ret;
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(3,18,0)
+	const struct of_device_id *match;
+	match = of_match_device(pdev->dev.driver->of_match_table, &pdev->dev);
+	func = match->data;
+#else
 	func = of_device_get_match_data(&pdev->dev);
+#endif
 
 	drm = nouveau_platform_device_create(func, pdev, &device);
 	if (IS_ERR(drm))

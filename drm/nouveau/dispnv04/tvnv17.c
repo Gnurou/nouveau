@@ -24,6 +24,8 @@
  *
  */
 
+#include <linux/version.h>
+
 #include <drm/drmP.h>
 #include <drm/drm_crtc_helper.h>
 #include "nouveau_drm.h"
@@ -656,7 +658,9 @@ static int nv17_tv_create_resources(struct drm_encoder *encoder,
 				nouveau_tv_norm);
 	}
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	drm_mode_create_tv_properties(dev, num_tv_norms, nv17_tv_norm_names);
+#endif
 
 	drm_object_attach_property(&connector->base,
 					conf->tv_select_subconnector_property,

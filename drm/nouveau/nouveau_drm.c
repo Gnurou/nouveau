@@ -28,6 +28,7 @@
 #include <linux/pci.h>
 #include <linux/pm_runtime.h>
 #include <linux/vga_switcheroo.h>
+#include <linux/version.h>
 
 #include "drmP.h"
 #include "drm_crtc_helper.h"
@@ -919,6 +920,10 @@ nouveau_driver_fops = {
 	.llseek = noop_llseek,
 };
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(3,18,0)
+#define DRIVER_KMS_LEGACY_CONTEXT 0
+#endif
+
 static struct drm_driver
 driver_stub = {
 	.driver_features =
@@ -937,7 +942,9 @@ driver_stub = {
 	.debugfs_cleanup = nouveau_debugfs_takedown,
 #endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	.get_vblank_counter = drm_vblank_no_hw_counter,
+#endif
 	.enable_vblank = nouveau_display_vblank_enable,
 	.disable_vblank = nouveau_display_vblank_disable,
 #ifndef CONFIG_ARCH_TEGRA

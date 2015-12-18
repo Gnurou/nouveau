@@ -37,6 +37,7 @@
 #include <linux/screen_info.h>
 #include <linux/vga_switcheroo.h>
 #include <linux/console.h>
+#include <linux/version.h>
 
 #include <drm/drmP.h>
 #include <drm/drm_crtc.h>
@@ -84,7 +85,9 @@ nouveau_fbcon_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 
 	if (ret != -ENODEV)
 		nouveau_fbcon_gpu_lockup(info);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	drm_fb_helper_cfb_fillrect(info, rect);
+#endif
 }
 
 static void
@@ -116,7 +119,9 @@ nouveau_fbcon_copyarea(struct fb_info *info, const struct fb_copyarea *image)
 
 	if (ret != -ENODEV)
 		nouveau_fbcon_gpu_lockup(info);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	drm_fb_helper_cfb_copyarea(info, image);
+#endif
 }
 
 static void
@@ -148,7 +153,9 @@ nouveau_fbcon_imageblit(struct fb_info *info, const struct fb_image *image)
 
 	if (ret != -ENODEV)
 		nouveau_fbcon_gpu_lockup(info);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	drm_fb_helper_cfb_imageblit(info, image);
+#endif
 }
 
 static int
@@ -221,9 +228,11 @@ static struct fb_ops nouveau_fbcon_sw_ops = {
 	.fb_release = nouveau_fbcon_release,
 	.fb_check_var = drm_fb_helper_check_var,
 	.fb_set_par = drm_fb_helper_set_par,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	.fb_fillrect = drm_fb_helper_cfb_fillrect,
 	.fb_copyarea = drm_fb_helper_cfb_copyarea,
 	.fb_imageblit = drm_fb_helper_cfb_imageblit,
+#endif
 	.fb_pan_display = drm_fb_helper_pan_display,
 	.fb_blank = drm_fb_helper_blank,
 	.fb_setcmap = drm_fb_helper_setcmap,
@@ -388,7 +397,11 @@ nouveau_fbcon_create(struct drm_fb_helper *helper,
 
 	mutex_lock(&dev->struct_mutex);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	info = drm_fb_helper_alloc_fbi(helper);
+#else
+	info = ERR_PTR(-EINVAL);
+#endif
 	if (IS_ERR(info)) {
 		ret = PTR_ERR(info);
 		goto out_unlock;
@@ -466,8 +479,10 @@ nouveau_fbcon_destroy(struct drm_device *dev, struct nouveau_fbdev *fbcon)
 {
 	struct nouveau_framebuffer *nouveau_fb = &fbcon->nouveau_fb;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 	drm_fb_helper_unregister_fbi(&fbcon->helper);
 	drm_fb_helper_release_fbi(&fbcon->helper);
+#endif
 
 	if (nouveau_fb->nvbo) {
 		nouveau_bo_unmap(nouveau_fb->nvbo);
@@ -505,7 +520,9 @@ nouveau_fbcon_set_suspend(struct drm_device *dev, int state)
 		console_lock();
 		if (state == FBINFO_STATE_RUNNING)
 			nouveau_fbcon_accel_restore(dev);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,18,0)
 		drm_fb_helper_set_suspend(&drm->fbcon->helper, state);
+#endif
 		if (state != FBINFO_STATE_RUNNING)
 			nouveau_fbcon_accel_save_disable(dev);
 		console_unlock();
