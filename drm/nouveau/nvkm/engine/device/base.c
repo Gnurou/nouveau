@@ -26,7 +26,6 @@
 
 #include <core/notify.h>
 #include <core/option.h>
-#include <core/secure_boot.h>
 
 #include <subdev/bios.h>
 
@@ -1992,10 +1991,7 @@ nv124_chipset = {
 	.fifo = gm204_fifo_new,
 	.gr = gm204_gr_new,
 	.sw = gf100_sw_new,
-	.secure_boot = {
-		.managed_falcons = BIT(LSF_FALCON_ID_FECS) | BIT(LSF_FALCON_ID_GPCCS),
-		.boot_falcon = LSF_FALCON_ID_PMU,
-	},
+	.secboot = gm200_secboot_new,
 };
 
 static const struct nvkm_device_chip
@@ -2027,10 +2023,7 @@ nv126_chipset = {
 	.fifo = gm204_fifo_new,
 	.gr = gm206_gr_new,
 	.sw = gf100_sw_new,
-	.secure_boot = {
-		.managed_falcons = BIT(LSF_FALCON_ID_FECS) | BIT(LSF_FALCON_ID_GPCCS),
-		.boot_falcon = LSF_FALCON_ID_PMU,
-	},
+	.secboot = gm200_secboot_new,
 };
 
 static const struct nvkm_device_chip
@@ -2051,10 +2044,7 @@ nv12b_chipset = {
 	.fifo = gm20b_fifo_new,
 	.gr = gm20b_gr_new,
 	.sw = gf100_sw_new,
-	.secure_boot = {
-		.managed_falcons = BIT(LSF_FALCON_ID_FECS),
-		.boot_falcon = LSF_FALCON_ID_PMU,
-	},
+	.secboot = gm20b_secboot_new,
 };
 
 static int
@@ -2105,6 +2095,7 @@ nvkm_device_subdev(struct nvkm_device *device, int index)
 	_(THERM  , device->therm  , &device->therm->subdev);
 	_(TIMER  , device->timer  , &device->timer->subdev);
 	_(VOLT   , device->volt   , &device->volt->subdev);
+	_(SECBOOT, device->secboot, &device->secboot->subdev);
 #undef _
 	default:
 		engine = nvkm_device_engine(device, index);
@@ -2265,9 +2256,6 @@ nvkm_device_init(struct nvkm_device *device)
 
 	ret = 0;
 
-	if (nvkm_need_secure_boot(device))
-		ret = nvkm_secure_boot_init(device);
-
 	time = ktime_to_us(ktime_get()) - time;
 	nvdev_trace(device, "init completed in %lldus\n", time);
 	return 0;
@@ -2291,9 +2279,6 @@ nvkm_device_del(struct nvkm_device **pdevice)
 	if (device) {
 		mutex_lock(&nv_devices_mutex);
 		device->disable_mask = 0;
-
-		if (nvkm_need_secure_boot(device))
-			nvkm_secure_boot_fini(device);
 
 		for (i = NVKM_SUBDEV_NR - 1; i >= 0; i--) {
 			struct nvkm_subdev *subdev =
@@ -2560,6 +2545,7 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 		_(NVKM_SUBDEV_THERM  ,   therm);
 		_(NVKM_SUBDEV_TIMER  ,   timer);
 		_(NVKM_SUBDEV_VOLT   ,    volt);
+		_(NVKM_SUBDEV_SECBOOT, secboot);
 		_(NVKM_ENGINE_BSP    ,     bsp);
 		_(NVKM_ENGINE_CE0    ,   ce[0]);
 		_(NVKM_ENGINE_CE1    ,   ce[1]);

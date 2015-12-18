@@ -33,7 +33,7 @@ gm20b_gr_init_gpc_mmu(struct gf100_gr *gr)
 	u32 val;
 
 	/* Bypass MMU check for non-secure boot */
-	if (!device->chip->secure_boot.managed_falcons) {
+	if (!device->secboot) {
 		nvkm_wr32(device, 0x100ce4, 0xffffffff);
 
 		if (nvkm_rd32(device, 0x100ce4) != 0xffffffff)

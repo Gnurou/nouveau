@@ -27,7 +27,7 @@
 
 #include <core/client.h>
 #include <core/option.h>
-#include <core/secure_boot.h>
+#include <subdev/secboot.h>
 #include <subdev/fb.h>
 #include <subdev/mc.h>
 #include <subdev/pmu.h>

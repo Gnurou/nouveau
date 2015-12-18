@@ -80,13 +80,15 @@
  *
  */
 
-#include <core/secure_boot.h>
 #include <core/gpuobj.h>
 #include <subdev/mmu.h>
 #include <subdev/timer.h>
 #include <subdev/fb.h>
+#include <subdev/secboot.h>
 
 #include <linux/mutex.h>
+
+#include "priv.h"
 
 enum {
 	FALCON_DMAIDX_UCODE		= 0,
@@ -416,12 +418,6 @@ struct acr_load_header {
 
 /**
  * Contains the whole secure boot state, allowing it to be performed as needed
- * @falcon_id:		falcon that will perform secure boot
- * @wpr_addr:		physical address of the WPR region
- * @wpr_size:		size in bytes of the WPR region
- * @ls_blob:		LS blob of all the LS firmwares, signatures, bootloaders
- * @ls_blob_size:	size of the LS blob
- * @ls_blob_nb_regions:	number of LS firmwares that will be loaded
  * @acr_blob:		HS blob
  * @acr_blob_vma:	mapping of the HS blob into the secure falcon's VM
  * @acr_bl_desc:	bootloader descriptor of the HS blob
@@ -431,23 +427,9 @@ struct acr_load_header {
  * @vm:			address space used by the HS falcon
  */
 struct secure_boot {
-	u32 falcon_id;
-	u64 wpr_addr;
-	u32 wpr_size;
 	u32 base;
 
-	/* LS FWs, to be loaded by the HS ACR */
-	struct nvkm_gpuobj *ls_blob;
-	u32 ls_blob_size;
-	u16 ls_blob_nb_regions;
-
-	/* HS FW */
-	struct nvkm_gpuobj *acr_blob;
-	struct nvkm_vma acr_blob_vma;
 	struct flcn_bl_dmem_desc acr_bl_desc;
-
-	/* HS bootloader */
-	void *hsbl_blob;
 
 	/* Instance block & address space */
 	struct nvkm_gpuobj *inst;
@@ -677,7 +659,7 @@ lsf_ucode_img_load_gpccs(struct nvkm_device *device, struct lsf_ucode_img *img)
  */
 static void
 lsf_ucode_img_populate_bl_desc(struct lsf_ucode_img *img,
-			       struct secure_boot *sb,
+			       struct nvkm_secboot *sb,
 			       struct flcn_bl_dmem_desc *desc)
 {
 	struct ls_ucode_desc *pdesc = &img->ucode_desc;
@@ -874,7 +856,7 @@ lsf_ucode_mgr_add_img(struct lsf_ucode_mgr *mgr, struct lsf_ucode_img *img)
  * lsf_mgr_fill_headers - fill the WPR and LSB headers of all managed images
  */
 static void
-lsf_ucode_mgr_fill_headers(struct secure_boot *sb, struct lsf_ucode_mgr *mgr)
+lsf_ucode_mgr_fill_headers(struct nvkm_secboot *sb, struct lsf_ucode_mgr *mgr)
 {
 	struct lsf_ucode_img *img;
 	u32 offset;
@@ -905,7 +887,7 @@ static void
 lsf_ucode_mgr_write_wpr(struct nvkm_device *device, struct lsf_ucode_mgr *mgr,
 			struct nvkm_gpuobj *wpr_blob)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_secboot *sb = device->secboot;
 	struct lsf_ucode_img *img;
 	u32 pos = 0;
 
@@ -949,19 +931,19 @@ lsf_ucode_mgr_write_wpr(struct nvkm_device *device, struct lsf_ucode_mgr *mgr,
  * will be copied into the WPR region by the HS firmware.
  */
 static int
-sb_prepare_ls_blob(struct nvkm_device *device)
+sb_prepare_ls_blob(struct nvkm_secboot *sb)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_device *device = sb->subdev.device;
 	struct lsf_ucode_mgr mgr;
 	int falcon_id;
 	int err;
 
 	lsf_ucode_mgr_init(&mgr);
 
-	sb->falcon_id = device->chip->secure_boot.boot_falcon;
+	sb->falcon_id = sb->func->boot_falcon;
 
 	/* Load all LS blobs */
-	for_each_set_bit(falcon_id, &device->chip->secure_boot.managed_falcons,
+	for_each_set_bit(falcon_id, &sb->func->managed_falcons,
 			 LSF_FALCON_ID_END) {
 		struct lsf_ucode_img *img;
 
@@ -1012,14 +994,6 @@ cleanup:
 	lsf_ucode_mgr_cleanup(&mgr);
 
 	return err;
-}
-
-static void
-sb_cleanup_ls_blob(struct nvkm_device *device)
-{
-	struct secure_boot *sb = device->secure_boot_state;
-
-	nvkm_gpuobj_del(&sb->ls_blob);
 }
 
 /*
@@ -1105,7 +1079,7 @@ struct hsflcn_acr_desc {
 static void
 hsf_img_patch_desc(struct nvkm_device *device, void *acr_image)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_secboot *sb = device->secboot;
 	struct hs_bin_hdr *hsbin_hdr = acr_image;
 	struct acr_fw_header *fw_hdr = acr_image + hsbin_hdr->header_offset;
 	struct acr_load_header *load_hdr = acr_image + fw_hdr->hdr_offset;
@@ -1162,7 +1136,8 @@ hsf_img_populate_bl_desc(void *acr_image, struct flcn_bl_dmem_desc *bl_desc)
 static int
 sb_prepare_hs_blob(struct nvkm_device *device)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_secboot *sb = device->secboot;
+	struct secure_boot *dsb = device->secure_boot_state;
 	void *acr_image;
 	struct hs_bin_hdr *hsbin_hdr;
 	u32 img_size;
@@ -1177,7 +1152,7 @@ sb_prepare_hs_blob(struct nvkm_device *device)
 	hsf_img_patch_desc(device, acr_image);
 
 	/* Generate HS BL descriptor */
-	hsf_img_populate_bl_desc(acr_image, &sb->acr_bl_desc);
+	hsf_img_populate_bl_desc(acr_image, &dsb->acr_bl_desc);
 
 	/* Create ACR blob and copy HS data to it */
 	hsbin_hdr = acr_image;
@@ -1198,14 +1173,6 @@ cleanup:
 	return err;
 }
 
-static void
-sb_cleanup_hs_blob(struct nvkm_device *device)
-{
-	struct secure_boot *sb = device->secure_boot_state;
-
-	nvkm_gpuobj_del(&sb->acr_blob);
-}
-
 /*
  * High-secure bootloader blob creation
  */
@@ -1213,7 +1180,7 @@ sb_cleanup_hs_blob(struct nvkm_device *device)
 static int
 sb_prepare_hsbl_blob(struct nvkm_device *device)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_secboot *sb = device->secboot;
 
 	if (!sb->hsbl_blob) {
 		sb->hsbl_blob = sb_load_firmware(device, "acr_bl", 0);
@@ -1226,15 +1193,6 @@ sb_prepare_hsbl_blob(struct nvkm_device *device)
 	}
 
 	return 0;
-}
-
-static void
-sb_cleanup_hsbl_blob(struct nvkm_device *device)
-{
-	struct secure_boot *sb = device->secure_boot_state;
-
-	kfree(sb->hsbl_blob);
-	sb->hsbl_blob = NULL;
 }
 
 /*
@@ -1453,10 +1411,11 @@ static void
 sb_load_hs_bl(struct nvkm_device *device)
 {
 	struct secure_boot *sb = device->secure_boot_state;
-	struct hs_bin_hdr *hdr = sb->hsbl_blob;
-	struct hsflcn_bl_desc *hsbl_desc = sb->hsbl_blob + hdr->header_offset;
-	u32 acr_blob_vma_base = lower_32_bits(sb->acr_blob_vma.offset);
-	void *hsbl_code = sb->hsbl_blob + hdr->data_offset;
+	struct nvkm_secboot *nsb = device->secboot;
+	struct hs_bin_hdr *hdr = nsb->hsbl_blob;
+	struct hsflcn_bl_desc *hsbl_desc = nsb->hsbl_blob + hdr->header_offset;
+	u32 acr_blob_vma_base = lower_32_bits(nsb->acr_blob_vma.offset);
+	void *hsbl_code = nsb->hsbl_blob + hdr->data_offset;
 	u32 code_size = ALIGN(hsbl_desc->bl_code_size, 256);
 	u32 dst_blk;
 	u32 tag;
@@ -1497,8 +1456,9 @@ static int
 sb_start(struct nvkm_device *device)
 {
 	struct secure_boot *sb = device->secure_boot_state;
-	struct hs_bin_hdr *hdr = sb->hsbl_blob;
-	struct hsflcn_bl_desc *hsbl_desc = sb->hsbl_blob + hdr->header_offset;
+	struct nvkm_secboot *nsb = device->secboot;
+	struct hs_bin_hdr *hdr = nsb->hsbl_blob;
+	struct hsflcn_bl_desc *hsbl_desc = nsb->hsbl_blob + hdr->header_offset;
 	/* virtual start address for boot vector */
 	u32 virt_addr = hsbl_desc->bl_start_tag << 8;
 
@@ -1520,11 +1480,12 @@ sb_start(struct nvkm_device *device)
 static int
 sb_execute(struct nvkm_device *device)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_secboot *sb = device->secboot;
+	struct secure_boot *psb = device->secure_boot_state;
 	int err;
 
 	/* Map the HS firmware so the HS bootloader can see it */
-	err = nvkm_gpuobj_map(sb->acr_blob, sb->vm, NV_MEM_ACCESS_RW,
+	err = nvkm_gpuobj_map(sb->acr_blob, psb->vm, NV_MEM_ACCESS_RW,
 			      &sb->acr_blob_vma);
 	if (err)
 		return err;
@@ -1578,37 +1539,16 @@ const char *managed_falcons_names[] = {
 int
 nvkm_secure_boot(struct nvkm_device *device)
 {
-	struct secure_boot *sb;
+	struct nvkm_secboot *sb = device->secboot;
 	unsigned long falcon_id;
 	int err;
 
-	sb = device->secure_boot_state;
+	printk("SEC BOOT BOOTING FALCONS\n");
 
 	nvdev_debug(device, "performing secure boot of:\n");
-	for_each_set_bit(falcon_id, &device->chip->secure_boot.managed_falcons,
+	for_each_set_bit(falcon_id, &sb->func->managed_falcons,
 			 LSF_FALCON_ID_END)
 		nvdev_debug(device, "- %s\n", managed_falcons_names[falcon_id]);
-
-	/* Load all the LS firmwares and prepare the blob */
-	if (!sb->ls_blob) {
-		err = sb_prepare_ls_blob(device);
-		if (err)
-			return err;
-	}
-
-	/* Load the HS firmware for the performing falcon */
-	if (!sb->acr_blob) {
-		err = sb_prepare_hs_blob(device);
-		if (err)
-			return err;
-	}
-
-	/* Load the HS firmware bootloader */
-	if (!sb->hsbl_blob) {
-		err = sb_prepare_hsbl_blob(device);
-		if (err)
-			return err;
-	}
 
 	/*
 	 * Run the HS bootloader. It will load the HS firmware and then run it.
@@ -1689,7 +1629,7 @@ sb_cleanup_vm(struct nvkm_device *device)
 static int
 sb_tegra_read_wpr(struct nvkm_device *device)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	struct nvkm_secboot *sb = device->secboot;
 	void __iomem *mc;
 	u32 cfg;
 
@@ -1733,7 +1673,7 @@ sb_tegra_read_wpr(struct nvkm_device *device)
  * Prepare secure boot for a device. This will not load the firmwares yet,
  * firmwares are loaded and cached upon the first call to nvkm_secure_boot().
  */
-int
+static int
 nvkm_secure_boot_init(struct nvkm_device *device)
 {
 	struct secure_boot *sb;
@@ -1762,7 +1702,7 @@ nvkm_secure_boot_init(struct nvkm_device *device)
 		goto error_free;
 	}
 
-	switch (device->chip->secure_boot.boot_falcon) {
+	switch (device->secboot->func->boot_falcon) {
 	case LSF_FALCON_ID_PMU:
 		sb->base = 0x10a000;
 		break;
@@ -1787,30 +1727,120 @@ error:
 	return err;
 }
 
-/**
- * nvkm_secure_boot_fini() - cleanup secure boot state for a device
- *
- * Frees all the memory used by secure boot.
- */
-void
-nvkm_secure_boot_fini(struct nvkm_device *device)
+bool
+nvkm_is_secure(struct nvkm_device *device, unsigned long falcon_id)
 {
-	struct secure_boot *sb = device->secure_boot_state;
+	return device->secboot->func->managed_falcons & BIT(falcon_id);
+}
 
-	if (!sb)
-		return;
+static int
+nvkm_secboot_oneinit(struct nvkm_subdev *subdev)
+{
+	struct nvkm_secboot *dsb = nvkm_secboot(subdev);
+	struct secure_boot *sb;
+	int err;
+
+	printk("SEC BOOT ONE INIT\n");
+
+	err = nvkm_secure_boot_init(dsb->subdev.device);
+	if (err)
+		return err;
+
+	sb = subdev->device->secure_boot_state;
+
+	/* Load and prepare the managed falcon's firmwares */
+	err = sb_prepare_ls_blob(dsb);
+	if (err)
+		return err;
+
+	/* Load the HS firmware for the performing falcon */
+	err = sb_prepare_hs_blob(subdev->device);
+	if (err)
+		return err;
+
+	/* Load the HS firmware bootloader */
+	err = sb_prepare_hsbl_blob(subdev->device);
+	if (err)
+		return err;
+
+	return 0;
+}
+
+static void *
+nvkm_secboot_dtor(struct nvkm_subdev *subdev)
+{
+	struct nvkm_secboot *sb = nvkm_secboot(subdev);
+
+	printk("SEC BOOT DTOR\n");
 
 	if (sb->hsbl_blob)
-		sb_cleanup_hsbl_blob(device);
+		kfree(sb->hsbl_blob);
 
 	if (sb->acr_blob)
-		sb_cleanup_hs_blob(device);
+		nvkm_gpuobj_del(&sb->acr_blob);
 
 	if (sb->ls_blob)
-		sb_cleanup_ls_blob(device);
+		nvkm_gpuobj_del(&sb->ls_blob);
 
-	   sb_cleanup_vm(device);
+	sb_cleanup_vm(subdev->device);
 
-	kfree(sb);
-	device->secure_boot_state = NULL;
+	return sb;
+}
+
+static const struct nvkm_subdev_func
+nvkm_secboot = {
+	.oneinit = nvkm_secboot_oneinit,
+	.dtor = nvkm_secboot_dtor,
+};
+
+int
+nvkm_secboot_new_(const struct nvkm_secboot_func *func,
+		  struct nvkm_device *device, int index,
+		  struct nvkm_secboot **psb)
+{
+	struct nvkm_secboot *sb;
+
+	if (!(sb = *psb = kzalloc(sizeof(*sb), GFP_KERNEL)))
+		return -ENOMEM;
+
+	nvkm_subdev_ctor(&nvkm_secboot, device, index, 0, &sb->subdev);
+	sb->func = func;
+
+	return 0;
+}
+
+static int
+gm200_prepare_blobs(struct nvkm_secboot *sb)
+{
+	printk("SEC BOOT PREPARE BLOBS\n");
+
+	return 0;
+}
+
+static const struct nvkm_secboot_func
+gm200_secboot = {
+	.prepare_blobs = gm200_prepare_blobs,
+	.managed_falcons = BIT(LSF_FALCON_ID_FECS) | BIT(LSF_FALCON_ID_GPCCS),
+	.boot_falcon = LSF_FALCON_ID_PMU,
+};
+
+int
+gm200_secboot_new(struct nvkm_device *device, int index,
+		  struct nvkm_secboot **secboot)
+{
+	return nvkm_secboot_new_(&gm200_secboot, device, index, secboot);
+}
+
+static const struct nvkm_secboot_func
+gm20b_secboot = {
+	.prepare_blobs = gm200_prepare_blobs,
+	.managed_falcons = BIT(LSF_FALCON_ID_FECS),
+	.boot_falcon = LSF_FALCON_ID_PMU,
+};
+
+int
+gm20b_secboot_new(struct nvkm_device *device, int index,
+		  struct nvkm_secboot **secboot)
+{
+	return nvkm_secboot_new_(&gm20b_secboot, device, index, secboot);
 }

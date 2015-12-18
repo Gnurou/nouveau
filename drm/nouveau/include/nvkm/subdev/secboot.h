@@ -32,21 +32,42 @@
 #define LSF_FALCON_ID_END	4
 #define LSF_FALCON_ID_INVALID   0xffffffff
 
-int nvkm_secure_boot_init(struct nvkm_device *);
-void nvkm_secure_boot_fini(struct nvkm_device *);
+/**
+ * @falcon_id:		falcon that will perform secure boot
+ * @wpr_addr:		physical address of the WPR region
+ * @wpr_size:		size in bytes of the WPR region
+ * @ls_blob:		LS blob of all the LS firmwares, signatures, bootloaders
+ * @ls_blob_size:	size of the LS blob
+ * @ls_blob_nb_regions:	number of LS firmwares that will be loaded
+*/
+struct nvkm_secboot {
+	const struct nvkm_secboot_func *func;
+	struct nvkm_subdev subdev;
+
+	u32 falcon_id;
+	u64 wpr_addr;
+	u32 wpr_size;
+
+	/* LS FWs, to be loaded by the HS ACR */
+	struct nvkm_gpuobj *ls_blob;
+	u32 ls_blob_size;
+	u16 ls_blob_nb_regions;
+
+	/* HS FW */
+	struct nvkm_gpuobj *acr_blob;
+	struct nvkm_vma acr_blob_vma;
+
+	/* HS bootloader */
+	void *hsbl_blob;
+
+};
+
+int gm200_secboot_new(struct nvkm_device *, int, struct nvkm_secboot **);
+int gm20b_secboot_new(struct nvkm_device *, int, struct nvkm_secboot **);
 
 int nvkm_secure_boot(struct nvkm_device *);
 
-static inline bool
-nvkm_is_secure(struct nvkm_device *device, unsigned long falcon_id)
-{
-	return device->chip->secure_boot.managed_falcons & BIT(falcon_id);
-}
-
-static inline bool
-nvkm_need_secure_boot(struct nvkm_device *device)
-{
-	return device->chip->secure_boot.managed_falcons != 0;
-}
+bool
+nvkm_is_secure(struct nvkm_device *device, unsigned long falcon_id);
 
 #endif
