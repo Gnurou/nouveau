@@ -1168,7 +1168,7 @@ sb_prepare_hs_blob(struct nvkm_device *device)
 	u32 img_size;
 	int err;
 
-	acr_image = sb_load_firmware(device, "acr_ucode", 0);
+	acr_image = sb_load_firmware(device, "acr_ucode_load", 0);
 	if (IS_ERR(acr_image))
 		return PTR_ERR(acr_image);
 
