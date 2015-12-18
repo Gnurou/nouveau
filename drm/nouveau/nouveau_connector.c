@@ -918,8 +918,6 @@ nouveau_connector_helper_funcs = {
 static const struct drm_connector_funcs
 nouveau_connector_funcs = {
 	.dpms = drm_helper_connector_dpms,
-	.save = NULL,
-	.restore = NULL,
 	.detect = nouveau_connector_detect,
 	.destroy = nouveau_connector_destroy,
 	.fill_modes = drm_helper_probe_single_connector_modes,
@@ -930,8 +928,6 @@ nouveau_connector_funcs = {
 static const struct drm_connector_funcs
 nouveau_connector_funcs_lvds = {
 	.dpms = drm_helper_connector_dpms,
-	.save = NULL,
-	.restore = NULL,
 	.detect = nouveau_connector_detect_lvds,
 	.destroy = nouveau_connector_destroy,
 	.fill_modes = drm_helper_probe_single_connector_modes,
@@ -964,8 +960,6 @@ nouveau_connector_dp_dpms(struct drm_connector *connector, int mode)
 static const struct drm_connector_funcs
 nouveau_connector_funcs_dp = {
 	.dpms = nouveau_connector_dp_dpms,
-	.save = NULL,
-	.restore = NULL,
 	.detect = nouveau_connector_detect,
 	.destroy = nouveau_connector_destroy,
 	.fill_modes = drm_helper_probe_single_connector_modes,
