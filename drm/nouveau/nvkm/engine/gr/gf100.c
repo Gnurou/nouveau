@@ -27,6 +27,7 @@
 
 #include <core/client.h>
 #include <core/option.h>
+#include <subdev/secboot.h>
 #include <subdev/fb.h>
 #include <subdev/mc.h>
 #include <subdev/pmu.h>
@@ -1310,16 +1311,44 @@ gf100_gr_init_ctxctl(struct gf100_gr *gr)
 	if (gr->firmware) {
 		/* load fuc microcode */
 		nvkm_mc_unk260(device->mc, 0);
-		gf100_gr_init_fw(gr, 0x409000, &gr->fuc409c, &gr->fuc409d);
-		gf100_gr_init_fw(gr, 0x41a000, &gr->fuc41ac, &gr->fuc41ad);
+
+		if (nvkm_is_secure(device, LSF_FALCON_ID_FECS) ||
+		    nvkm_is_secure(device, LSF_FALCON_ID_GPCCS)) {
+			int err = nvkm_secure_boot(subdev->device);
+
+			if (err)
+				return err;
+		}
+
+		if (!nvkm_is_secure(device, LSF_FALCON_ID_FECS))
+			gf100_gr_init_fw(gr, 0x409000, &gr->fuc409c,
+					 &gr->fuc409d);
+		else
+			/* force vid mem access for BL */
+			if (device->type != NVKM_DEVICE_TEGRA)
+				nvkm_wr32(device, 0x409a20, 0x80000002);
+
+		if (!nvkm_is_secure(device, LSF_FALCON_ID_GPCCS))
+			gf100_gr_init_fw(gr, 0x41a000, &gr->fuc41ac,
+					 &gr->fuc41ad);
+
 		nvkm_mc_unk260(device->mc, 1);
 
 		/* start both of them running */
 		nvkm_wr32(device, 0x409840, 0xffffffff);
 		nvkm_wr32(device, 0x41a10c, 0x00000000);
 		nvkm_wr32(device, 0x40910c, 0x00000000);
-		nvkm_wr32(device, 0x41a100, 0x00000002);
-		nvkm_wr32(device, 0x409100, 0x00000002);
+		/* Use FALCON_CPUCTL_ALIAS if falcon is in secure mode */
+		if (nvkm_rd32(device, 0x41a100) & 0x40)
+			nvkm_wr32(device, 0x41a130, 0x00000002);
+		else
+			nvkm_wr32(device, 0x41a100, 0x00000002);
+
+		/* Use FALCON_CPUCTL_ALIAS if falcon is in secure mode */
+		if (nvkm_rd32(device, 0x409100) & 0x40)
+			nvkm_wr32(device, 0x409130, 0x00000002);
+		else
+			nvkm_wr32(device, 0x409100, 0x00000002);
 		if (nvkm_msec(device, 2000,
 			if (nvkm_rd32(device, 0x409800) & 0x00000001)
 				break;
@@ -1629,6 +1658,7 @@ int
 gf100_gr_ctor(const struct gf100_gr_func *func, struct nvkm_device *device,
 	      int index, struct gf100_gr *gr)
 {
+	struct nvkm_subdev *subdev = &gr->base.engine.subdev;
 	int ret;
 
 	gr->func = func;
@@ -1642,12 +1672,22 @@ gf100_gr_ctor(const struct gf100_gr_func *func, struct nvkm_device *device,
 		return ret;
 
 	if (gr->firmware) {
-		nvkm_info(&gr->base.engine.subdev, "using external firmware\n");
-		if (gf100_gr_ctor_fw(gr, "fecs_inst", &gr->fuc409c) ||
-		    gf100_gr_ctor_fw(gr, "fecs_data", &gr->fuc409d) ||
-		    gf100_gr_ctor_fw(gr, "gpccs_inst", &gr->fuc41ac) ||
-		    gf100_gr_ctor_fw(gr, "gpccs_data", &gr->fuc41ad))
-			return -ENODEV;
+		nvkm_info(subdev, "using external firmware\n");
+		if (!nvkm_is_secure(device, LSF_FALCON_ID_FECS)) {
+			if (gf100_gr_ctor_fw(gr, "fecs_inst", &gr->fuc409c) ||
+			    gf100_gr_ctor_fw(gr, "fecs_data", &gr->fuc409d))
+				return -ENODEV;
+		} else {
+			nvkm_info(subdev, "FECS firmware securely managed\n");
+		}
+
+		if (!nvkm_is_secure(device, LSF_FALCON_ID_GPCCS)) {
+			if (gf100_gr_ctor_fw(gr, "gpccs_inst", &gr->fuc41ac) ||
+			    gf100_gr_ctor_fw(gr, "gpccs_data", &gr->fuc41ad))
+				return -ENODEV;
+		} else {
+			nvkm_info(subdev, "GPCCS firmware securely managed\n");
+		}
 	}
 
 	return 0;

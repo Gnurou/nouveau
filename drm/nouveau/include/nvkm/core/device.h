@@ -24,6 +24,7 @@ enum nvkm_devidx {
 	NVKM_SUBDEV_VOLT,
 	NVKM_SUBDEV_THERM,
 	NVKM_SUBDEV_CLK,
+	NVKM_SUBDEV_SECBOOT,
 
 	NVKM_ENGINE_DMAOBJ,
 	NVKM_ENGINE_IFB,
@@ -78,6 +79,9 @@ struct nvkm_device {
 	u64 disable_mask;
 	u32 debug;
 
+	/* secure boot state, to repeat the process when needed */
+	void *secure_boot_state;
+
 	const struct nvkm_device_chip *chip;
 	enum {
 		NV_04    = 0x04,
@@ -119,6 +123,7 @@ struct nvkm_device {
 	struct nvkm_therm *therm;
 	struct nvkm_timer *timer;
 	struct nvkm_volt *volt;
+	struct nvkm_secboot *secboot;
 
 	struct nvkm_engine *bsp;
 	struct nvkm_engine *ce[3];
@@ -185,6 +190,7 @@ struct nvkm_device_chip {
 	int (*therm  )(struct nvkm_device *, int idx, struct nvkm_therm **);
 	int (*timer  )(struct nvkm_device *, int idx, struct nvkm_timer **);
 	int (*volt   )(struct nvkm_device *, int idx, struct nvkm_volt **);
+	int (*secboot)(struct nvkm_device *, int idx, struct nvkm_secboot **);
 
 	int (*bsp    )(struct nvkm_device *, int idx, struct nvkm_engine **);
 	int (*ce[3]  )(struct nvkm_device *, int idx, struct nvkm_engine **);

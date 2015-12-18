@@ -11,6 +11,7 @@ struct nvkm_device_tegra {
 
 	struct reset_control *rst;
 	struct clk *clk;
+	struct clk *clk_ref;
 	struct clk *clk_pwr;
 
 	struct regulator *vdd;
@@ -26,7 +27,8 @@ struct nvkm_device_tegra {
 		unsigned long pgshift;
 	} iommu;
 
-	int gpu_speedo;
+	int gpu_speedo_id;
+	int gpu_speedo_value;
 };
 
 struct nvkm_device_tegra_func {

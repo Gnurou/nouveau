@@ -14,6 +14,7 @@ struct nvkm_volt_func {
 	int (*vid_get)(struct nvkm_volt *);
 	int (*vid_set)(struct nvkm_volt *, u8 vid);
 	int (*set_id)(struct nvkm_volt *, u8 id, int condition);
+	int (*get_voltage_by_id)(struct nvkm_volt *, u8 vid);
 };
 
 int nvkm_voltgpio_init(struct nvkm_volt *);

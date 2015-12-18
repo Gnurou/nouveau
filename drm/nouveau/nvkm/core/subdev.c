@@ -49,6 +49,7 @@ nvkm_subdev_name[NVKM_SUBDEV_NR] = {
 	[NVKM_SUBDEV_THERM  ] = "therm",
 	[NVKM_SUBDEV_TIMER  ] = "tmr",
 	[NVKM_SUBDEV_VOLT   ] = "volt",
+	[NVKM_SUBDEV_SECBOOT] = "secboot",
 	[NVKM_ENGINE_BSP    ] = "bsp",
 	[NVKM_ENGINE_CE0    ] = "ce0",
 	[NVKM_ENGINE_CE1    ] = "ce1",
