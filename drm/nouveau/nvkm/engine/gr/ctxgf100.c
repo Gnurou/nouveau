@@ -1274,6 +1274,7 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	struct nvkm_subdev *subdev = &gr->base.engine.subdev;
 	struct nvkm_device *device = subdev->device;
 	struct nvkm_ltc *ltc = device->ltc;
+	struct nvkm_mmu *mmu = device->mmu;
 	struct nvkm_memory *chan;
 	struct gf100_grctx info;
 	int ret, i;
@@ -1290,6 +1291,9 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	}
 
 	addr = nvkm_memory_addr(chan);
+
+	/* Trying to cover ctx memory with only 1 valid PDE below */
+	BUG_ON(nvkm_memory_size(chan) > (1ULL << (mmu->lpg_shift + 10)));
 
 	/* PGD pointer */
 	nvkm_kmap(chan);

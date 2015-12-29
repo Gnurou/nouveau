@@ -54,11 +54,11 @@ gf100_bar_ctor_vm(struct gf100_bar *bar, struct gf100_bar_vm *bar_vm,
 	if (ret)
 		return ret;
 
-	ret = nvkm_gpuobj_new(device, 0x8000, 0, false, NULL, &bar_vm->pgd);
+	bar_len = device->func->resource_size(device, bar_nr);
+
+	ret = nvkm_vm_pgd_new(device->mmu, bar_len, false, &bar_vm->pgd);
 	if (ret)
 		return ret;
-
-	bar_len = device->func->resource_size(device, bar_nr);
 
 	ret = nvkm_vm_new(device, 0, bar_len, 0, key, &vm);
 	if (ret)
