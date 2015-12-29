@@ -274,6 +274,25 @@ nvkm_vm_map_pgt(struct nvkm_vm *vm, u32 pde, u32 type)
 	return 0;
 }
 
+/*
+ * @length - Length of address space of this PGD
+ */
+int nvkm_vm_pgd_new(struct nvkm_mmu *mmu, u64 length, bool zero,
+		       struct nvkm_gpuobj **ppgd)
+{
+	u32 pde_bits, pgd_size;
+
+	/* Coverage of a single PDE, 2^10 large page PTEs per PDE */
+	pde_bits = mmu->func->lpg_shift + 10;
+
+	/* Necessary PGD size to cover address space length */
+	pgd_size = (ALIGN(length, (1ULL << pde_bits)) >> pde_bits) * 8;
+
+	/* PDB address has to be 4K aligned */
+	return nvkm_gpuobj_new(mmu->subdev.device, pgd_size, 4096, zero,
+			       NULL, ppgd);
+}
+
 int
 nvkm_vm_get(struct nvkm_vm *vm, u64 size, u32 page_shift, u32 access,
 	    struct nvkm_vma *vma)

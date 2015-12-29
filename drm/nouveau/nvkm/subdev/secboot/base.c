@@ -1576,7 +1576,7 @@ sb_init_vm(struct nvkm_device *device)
 	if (err)
 		return err;
 
-	err = nvkm_gpuobj_new(device, 0x8000, 0, true, NULL, &sb->pgd);
+	err = nvkm_vm_pgd_new(device->mmu, vm_area_len, true, &sb->pgd);
 	if (err)
 		return err;
 

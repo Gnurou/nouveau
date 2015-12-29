@@ -45,6 +45,8 @@ int  nvkm_vm_ref(struct nvkm_vm *, struct nvkm_vm **, struct nvkm_gpuobj *pgd);
 int  nvkm_vm_boot(struct nvkm_vm *, u64 size);
 int  nvkm_vm_get(struct nvkm_vm *, u64 size, u32 page_shift, u32 access,
 		 struct nvkm_vma *);
+int  nvkm_vm_pgd_new(struct nvkm_mmu *mmu, u64 length, bool zero,
+			struct nvkm_gpuobj **ppgd);
 void nvkm_vm_put(struct nvkm_vma *);
 void nvkm_vm_map(struct nvkm_vma *, struct nvkm_mem *);
 void nvkm_vm_map_at(struct nvkm_vma *, u64 offset, struct nvkm_mem *);

@@ -198,6 +198,7 @@ gf100_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	struct gf100_fifo *fifo = gf100_fifo(base);
 	struct nvkm_device *device = fifo->base.engine.subdev.device;
 	struct nvkm_object *parent = oclass->parent;
+	struct nvkm_mmu *mmu = device->mmu;
 	struct gf100_fifo_chan *chan;
 	u64 usermem, ioffset, ilength;
 	int ret = -ENOSYS, i;
@@ -235,7 +236,7 @@ gf100_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	args->v0.chid = chan->base.chid;
 
 	/* page directory */
-	ret = nvkm_gpuobj_new(device, 0x10000, 0x1000, false, NULL, &chan->pgd);
+	ret = nvkm_vm_pgd_new(mmu, mmu->limit, false, &chan->pgd);
 	if (ret)
 		return ret;
 
